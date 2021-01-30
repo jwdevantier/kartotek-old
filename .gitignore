@@ -1,0 +1,13 @@
+.nrepl-port
+*.jar
+
+# intellij
+*.iml
+.idea
+
+# vscode
+.calva
+
+# vim, lsp, random
+.lsp
+.clj-kondo
