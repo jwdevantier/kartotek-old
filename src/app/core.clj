@@ -6,18 +6,18 @@
             [markdown-to-hiccup.core :as m]
             [clj-yaml.core :as yml]))
 
-(def expost "/Users/jwd/repos/personal/11tyblog/posts/1-clj-intro.md")
+#_(def expost "/Users/jwd/repos/personal/11tyblog/posts/1-clj-intro.md")
+(def expost "/home/pseud/repos/cljblog/src/posts")
 ; watch dir
 ; only act on *.md files
 ; translate input path, e.g. src/posts/deps/intro.md -> site/deps/intro/index.html
 
+
+; example: (walk-dir "/home/pseud/repos" #".*\.py$")
 (defn walk-dir
   "recursively walk through `dir` returning files matching `pattern`.
 
-  **Examples**
-  ```clojure
-  (walk-dir \".\" #\".*\")
-  ```"
+  "
   [dir pattern]
   (->> dir
        (io/file)
@@ -27,6 +27,7 @@
 (defn md->hiccup [content]
   (-> content (m/md->hiccup) (m/component)))
 
+; (parse-md-doc (slurp file-path))
 (defn parse-md-doc
   "Parse `content` into map {:content ... :meta ...}.
 
@@ -115,7 +116,7 @@
       (if-let [stop-watch @watcher]
         (do (stop-watch) (reset! watcher nil)))))
 
-(let [watcher (atom nil)]
+#_(let [watcher (atom nil)]
   (defn watch-begin))
 
 #_(h/watch! [{:paths ["/tmp/hello"]

@@ -2,5 +2,10 @@
         ring/ring-jetty-adapter {:mvn/version "1.8.2"}
         ring/ring-devel {:mvn/version "1.8.2"}
         compojure/compojure {:mvn/version "1.6.2"}
-        }
- :paths ["src"]}
+        markdown-to-hiccup/markdown-to-hiccup {:mvn/version "0.6.2"}
+        clj-yaml/clj-yaml {:mvn/version "0.4.0"}
+        hawk/hawk {:mvn/version "0.2.11"}
+        clojure-watch/clojure-watch {:mvn/version "0.1.14"}
+        org.rssys/context {:mvn/version "0.1.4"}}
+ :paths ["src"]
+ :aliases {:dev {:extra-paths ["dev"]}}}

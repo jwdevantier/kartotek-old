@@ -25,21 +25,14 @@
       (wrap-content-type)
       (wrap-not-modified)))
 
-(defonce server (atom nil))
-
 (defn start
-  "start development server"
-  []
-  (swap! server (fn [s] (if (nil? s)
-                          (do (println "starting server")
-                              (ring/run-jetty #'preview-server {:port 8079
-                                                                :join? false}))
-                          (do (println "server already started")
-                              s)))))
+  "start server component"
+  [{:keys [port]}]
+  (println "starting server...")
+  (ring/run-jetty #'preview-server {:port port :join? false}))
 
 (defn stop
-  "stop development server"
-  []
-  (swap! server (fn [s] (when s (do (println "stopping server...")
-                                    (.stop s)
-                                    nil)))))
+  "stop server component"
+  [state-obj]
+  (println "stopping server...")
+  (.stop state-obj))
