@@ -11,3 +11,6 @@
 # vim, lsp, random
 .lsp
 .clj-kondo
+
+# no notes
+notes/**/*.md
