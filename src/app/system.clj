@@ -24,14 +24,14 @@
        (println "stopping cfg")
        (println state-obj))}
     {:id :web
-       :start-deps #{:cfg}
-       :config
-       (fn [ctx]
-         (-> (context/get-component-value ctx :cfg)
-             :state-obj
-             :web))
-       :start-fn
-       server/start
-       :stop-fn
-       server/stop
-       }]))
+     :start-deps #{:cfg}
+     :config
+     (fn [ctx]
+       (-> (context/get-component-value ctx :cfg)
+           :state-obj
+           :web))
+     :start-fn
+     server/start
+     :stop-fn
+     server/stop
+     }]))

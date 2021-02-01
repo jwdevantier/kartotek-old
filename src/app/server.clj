@@ -1,26 +1,70 @@
 (ns app.server
+  (:use [hiccup core form])
   (:require [ring.adapter.jetty :as ring]
             [compojure.core :refer :all]
             [compojure.route :as route]
+            [clojure.java.io :as io]
+            ;[hiccup.core :refer [html]]
+            [app.core :as core]
+            [app.notes :as notes]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.file :refer :all]
             [ring.middleware.content-type :refer :all]
             [ring.middleware.not-modified :refer :all]))
 
-(defn welcome
+
+(defn note-search-form
+  ""
+  []
+  (form-to {:enctype "multipart/form-data"}
+    [:post "/"]
+   (text-field "search-query")
+   (submit-button {:class "btn" } "search")))
+
+(defn note-index
   "default"
   [rq]
-  {:status 200
-   :body "Hello, world"
-   :headers {"Content-Type" "text/plain"}})
+  (let [notes (->> (notes/notes-files)
+                   (map (fn [f]
+                          (let [name (.getName f)]
+                            [:li [:a {:href (str "/notes/" name)} name]]))))]
+    (print notes)
+    {:status 200
+     :body (html [:div (note-search-form) [:ul notes]])
+     :headers {"Content-Type" "text/html"}}))
+
+(defn note-search-rq
+  "handle search request, show results"
+  [rq]
+  (let [search-query (-> rq :params (get "search-query"))]
+    {:status 200
+      :body (html [:div (str "you searched for '" search-query "'")])
+      :headers {"Content-Type" "text/html"}}))
+
+
+;; TODO: ZERO error-handling here..
+;; (garbled contents, no file..)
+(defn note-show
+  "default"
+  [rq]
+  (let [id (-> rq :params :id)
+        note (core/parse-md-doc (slurp (str core/notes-dir "/" id)))]
+    {:status 200
+     :body (html (:content note))
+     :headers {"Content-Type" "text/html"}}))
+
 
 (defroutes app-routes
-  (GET "/" [] welcome)
+  (GET "/" [] note-index)
+  (POST "/" [] note-search-rq)
+  (GET "/notes/:id" [rq id] note-show)
   (route/not-found "not found"))
 
 (def preview-server
   (-> app-routes
       (wrap-reload)
+      wrap-multipart-params
       (wrap-file "site")
       (wrap-content-type)
       (wrap-not-modified)))
