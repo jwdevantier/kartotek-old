@@ -8,7 +8,7 @@
 ;       if delete: dissoc entry
 (defn -watch-notes-dirs
   ""
-  [db & note-dirs]
+  [db note-dirs]
   (h/watch! [{:paths note-dirs
               :handler (fn [ctx event]
                          (println "Ctx:" ctx)
