@@ -25,9 +25,9 @@
 (defn note-index
   "default"
   [rq]
-  (let [notes (->> (notes/notes-files)
-                   (map (fn [f]
-                          (let [name (.getName f)]
+  (let [notes (->> (notes/notes-paths notes/dir)
+                   (map (fn [fpath]
+                          (let [name (-> fpath io/file .getName)]
                             [:li [:a {:href (str "/notes/" name)} name]]))))]
     (print notes)
     {:status 200
@@ -49,7 +49,7 @@
   "default"
   [rq]
   (let [id (-> rq :params :id)
-        note (core/parse-md-doc (slurp (str core/notes-dir "/" id)))]
+        note (notes/parse-md-doc (slurp (str notes/dir "/" id)))]
     {:status 200
      :body (html (:content note))
      :headers {"Content-Type" "text/html"}}))

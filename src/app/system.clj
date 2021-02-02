@@ -18,7 +18,7 @@
      (fn [cfg]
        (println ":cfg component starting")
        (println cfg)
-       {:web {:port 8079}})
+       {:web {:port 8081}})
      :stop-fn
      (fn [state-obj]
        (println "stopping cfg")

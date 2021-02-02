@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [markdown-to-hiccup.core :as m]
-            [clj-yaml.core :as yml]))
+            [clj-yaml.core :as yml]
+            [app.iou :as iou]))
 
 ; TODO: figure out a way to configure this...
 (def dir "/home/pseud/repos/cljblog/notes")
@@ -17,10 +18,18 @@
        (file-seq)
        (filter #(re-matches pattern (.getName %)))))
 
-(defn notes-files
-  "return list of notes file objects"
-  []
-  (walk-dir dir #".*\.md$"))
+(defn ls
+  "list directory"
+  [dir]
+  (.list (io/file dir)))
+
+
+(defn notes-paths
+  "return seq of paths to notes files."
+  [dir]
+  (->> (ls dir)
+       (filter #(re-matches #".*\.md$" %))
+       (map #(iou/path-join dir %))))
 
 
 (defn md->hiccup
@@ -42,7 +51,20 @@
         (let [lines (string/split-lines content)
               meta-lines (take-while #(not (string/starts-with? % "---"))
                                      (drop 1 lines))]
-          {:meta (->> meta-lines (string/join "\n") (yml/parse-string))
+          {:meta (-> (->> meta-lines (string/join "\n") (yml/parse-string))
+                     (update :tags #(-> (map string/lower-case %)
+                                        set)))
            :content (->> lines (drop (+ (count meta-lines) 2)) (string/join "\n"))})
         {:content content :meta {}})
       (update :content md->hiccup)))
+
+(defn extract-links
+  "extracts destination of each link found in page's hiccup AST."
+  ([doc] (extract-links doc #{}))
+  ([doc links]
+   (if (not (vector? doc))
+     links
+     (if (= (get doc 0) :a)
+       (conj links (-> doc (get 1) (get :href)))
+       (reduce (fn [links doc]
+                 (extract-links doc links)) links doc)))))
