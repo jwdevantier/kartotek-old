@@ -1,11 +1,8 @@
 (ns app.system
   (:require [org.rssys.context.core :as context]
             [app.server :as server]
-            [app.filedb :as filedb]))
-
-;; https://github.com/redstarssystems/context
-;; https://github.com/redstarssystems/context-demo/
-(defonce system (atom nil))
+            [app.filedb :as filedb]
+            [app.state :refer [system]]))
 
 (defn -build-system
   "build system"

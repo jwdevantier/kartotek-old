@@ -1,22 +1,21 @@
 (ns user
-  (:require [app.system :as sys]
-            [org.rssys.context.core :as ctx]))
+  (:require [org.rssys.context.core :as ctx]
+            [app.state :refer [system]]
+            [app.system :as sys]))
 
+(defn system-stop! []
+  (if (not (nil? @system))
+    (do (println "stopping system...")
+        (ctx/stop-all system))
+    (println "system already stopped")))
 
 (defn system-rebuild! []
-  (if (not (nil? @sys/system))
-    (system-stop)
-    (do (reset! sys/system nil)
+  (if (not (nil? @system))
+    (system-stop!)
+    (do (reset! system nil)
         (sys/-build-system))))
 
 (defn system-start! []
-  (when (nil? @sys/system)
+  (when (nil? @system)
     (system-rebuild!))
-  (ctx/start-all sys/system))
-
-(defn system-stop! []
-  (if (not (nil? @sys/system))
-    (do (println "stopping system...")
-        (ctx/stop-all sys/system))
-    (println "system already stopped")))
-
+  (ctx/start-all system))

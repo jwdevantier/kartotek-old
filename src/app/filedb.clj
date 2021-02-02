@@ -3,25 +3,8 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [app.notes :as notes]
-            [app.system :as sys]
+            [app.state :refer [system]]
             [org.rssys.context.core :as ctx]))
-
-(defn -watch-notes-dirs
-  "watch notes directory, updating entries in `db` atom as appropriate."
-  [db note-dirs]
-  (h/watch! [{:paths note-dirs
-              :filter
-              (fn [_ {:keys [file kind]}]
-                (and (string/ends-with? (.getName file) ".md")
-                     (or (and (= kind :modify)
-                              (.isFile file))
-                         (= kind :delete))))
-              :handler
-              (fn [ctx {:keys [file kind]}]
-                (swap! db (fn [v] (if (= kind :delete)
-                                    (dissoc v (.getName file))
-                                    (assoc v (.getName file)
-                                           (-build-db-doc-entry file))))))}]))
 
 (defn -build-db-doc-entry [fpath]
   (let [doc (notes/parse-md-doc (slurp fpath))
@@ -34,11 +17,28 @@
                    (-build-db-doc-entry fpath)))
           {} (notes/notes-paths dir)))
 
+(defn -watch-notes-dirs
+  "watch notes directory, updating entries in `db` atom as appropriate."
+  [db note-dirs]
+  (h/watch! [{:paths note-dirs
+              :filter
+              (fn [_ {:keys [file kind]}]
+                (and (string/ends-with? (.getName file) ".md")
+                     (or (and (= kind :modify)
+                              (.isFile file))
+                         (= kind :delete))))
+              :handler
+              (fn [_ {:keys [file kind]}]
+                (swap! db (fn [v] (if (= kind :delete)
+                                    (dissoc v (.getName file))
+                                    (assoc v (.getName file)
+                                           (-build-db-doc-entry file))))))}]))
+
 (defn filter-db
   "Returns a lazy sequence of the items in the database
   for which `pred` returns logical true."
   [pred]
-  (let [db (-> sys/system
+  (let [db (-> system
                (ctx/get-component :filedb)
                :state-obj
                :db
