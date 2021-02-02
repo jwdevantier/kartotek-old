@@ -1,20 +1,20 @@
 (ns user
   (:require [app.system :as sys]
             [org.rssys.context.core :as ctx]))
-; TODO: write fns to start and stop system, and build if necessary
 
 
+(defn system-rebuild! []
+  (if (not (nil? @sys/system))
+    (system-stop)
+    (do (reset! sys/system nil)
+        (sys/-build-system))))
 
-(defn system-rebuild []
-  (reset! sys/system nil)
-  (sys/-build-system))
-
-(defn system-start []
+(defn system-start! []
   (when (nil? @sys/system)
-    (system-rebuild))
+    (system-rebuild!))
   (ctx/start-all sys/system))
 
-(defn system-stop []
+(defn system-stop! []
   (if (not (nil? @sys/system))
     (do (println "stopping system...")
         (ctx/stop-all sys/system))

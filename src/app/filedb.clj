@@ -6,11 +6,8 @@
             [app.system :as sys]
             [org.rssys.context.core :as ctx]))
 
-; TODO: refac to make this part work - might need to take ctx args and return a watcher fn
-;       if modify: assoc in -build-db-doc-entry
-;       if delete: dissoc entry
 (defn -watch-notes-dirs
-  ""
+  "watch notes directory, updating entries in `db` atom as appropriate."
   [db note-dirs]
   (h/watch! [{:paths note-dirs
               :filter
@@ -20,10 +17,11 @@
                               (.isFile file))
                          (= kind :delete))))
               :handler
-              (fn [ctx event]
-
-                (println "Ctx:" ctx)
-                (println "event:" event))}]))
+              (fn [ctx {:keys [file kind]}]
+                (swap! db (fn [v] (if (= kind :delete)
+                                    (dissoc v (.getName file))
+                                    (assoc v (.getName file)
+                                           (-build-db-doc-entry file))))))}]))
 
 (defn -build-db-doc-entry [fpath]
   (let [doc (notes/parse-md-doc (slurp fpath))
