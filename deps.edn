@@ -6,6 +6,7 @@
         markdown-to-hiccup/markdown-to-hiccup {:mvn/version "0.6.2"}
         clj-yaml/clj-yaml {:mvn/version "0.4.0"}
         hawk/hawk {:mvn/version "0.2.11"}
-        org.rssys/context {:mvn/version "0.1.4"}}
+        org.rssys/context {:mvn/version "0.1.4"}
+        instaparse/instaparse {:mvn/version "1.4.10"}}
  :paths ["src"]
  :aliases {:dev {:extra-paths ["dev"]}}}

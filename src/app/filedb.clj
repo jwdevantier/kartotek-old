@@ -2,9 +2,10 @@
   (:require [hawk.core :as h]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [org.rssys.context.core :as ctx]
+            [instaparse.core :as insta]
             [app.notes :as notes]
-            [app.state :refer [system]]
-            [org.rssys.context.core :as ctx]))
+            [app.state :refer [system]]))
 
 (defn -build-db-doc-entry [fpath]
   (let [doc (notes/parse-md-doc (slurp fpath))
@@ -44,6 +45,40 @@
                :db
                deref)]
     (filter pred (for [[fname entry] db] (assoc entry :id fname)))))
+
+;; Parser definition
+;; -----------------
+;;
+;; Example queries:
+;; hello world
+;;   - show notes whose titles contain 'hello' and 'world'
+;;
+;; "hello world"
+;;   - show notes whose title contains the phrase 'hello world'
+;;
+;; hello -world
+;;   - show notes whose title contains the word 'hello' but NOT 'world'
+;;
+;; t:programming r:hello.md
+;;   - show notes tagged 'programming' which is related to 'hello.md'
+;;
+;; t:programming -react
+;;   - show notes tagged 'programming' where 'react' is NOT part of the title
+;;
+;;
+;; related: doc X is related to doc Y iff. X contains one or more links to Y
+;;          - dox X is related to Y if X is among Y's backlinks!
+(def parse-query
+  (insta/parser
+   "<Q> = (TERM <WS>)* TERM
+    TERM = NOT? ((T | R) <':'> STR | STR)
+    T = 't' | 'tag'
+    R = 'r' | 'related'
+    NOT = <'-'>
+    QUOTE = '\"'
+    STR = <QUOTE> #'[^\"]+' <QUOTE> | #'[^:^\"^\\s^-][^:^\"^\\s]*'
+    WS = ' '+
+    "))
 
 (defn start
   "start file database"
