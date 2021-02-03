@@ -10,7 +10,9 @@
 (defn -build-db-doc-entry [fpath]
   (let [doc (notes/parse-md-doc (slurp fpath))
         links (notes/extract-links (:content doc))]
-    (assoc (:meta doc) :links links)))
+    ; ensure all fields exist, even if no value was provided in doc meta data
+    (merge {:title "" :description "" :tags #{} :links #{}}
+           (assoc (:meta doc) :links links))))
 
 (defn -build-db [dir]
   (reduce (fn [db fpath]
@@ -79,6 +81,29 @@
     STR = <QUOTE> #'[^\"]+' <QUOTE> | #'[^:^\"^\\s^-][^:^\"^\\s]*'
     WS = ' '+
     "))
+
+(defn -query-ast->filter
+  "translate query AST into a valid filter predicate function"
+  [ast]
+  (let [parse-term-inner (fn [[b c :as term]]
+                           (case (count term)
+                             ; [[:STR "something"]]
+                             1 (let [[_ search-string] b]
+                                 #(string/includes? (-> % :title) search-string))
+                             ; [[:R] [:STR "something"]]
+                             ; [[:T] [:STR "something"]]
+                             2 (let [[modifier] b
+                                     [_ search-string] c]
+                                 (case modifier
+                                   :T #(contains? (:tags %) search-string)
+                                   :R #(contains? (:links %) search-string)))))
+        parse-term (fn [[_ & t]]
+                     (if (= [:NOT] (first t))
+                       (complement (parse-term-inner (rest t)))
+                       (parse-term-inner t)))]
+    (let [preds (map parse-term ast)]
+      (fn [entry]
+        (every? (fn [pred] (pred entry)) preds)))))
 
 (defn start
   "start file database"
