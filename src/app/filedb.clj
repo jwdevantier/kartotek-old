@@ -105,6 +105,11 @@
       (fn [entry]
         (every? (fn [pred] (pred entry)) preds)))))
 
+(defn search
+  "return results for search"
+  [query]
+  (-> query parse-query -query-ast->filter-fn filter-db))
+
 (defn start
   "start file database"
   [{:keys [note-dir]}]
