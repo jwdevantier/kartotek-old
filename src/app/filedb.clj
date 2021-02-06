@@ -7,6 +7,16 @@
             [app.notes :as notes]
             [app.state :refer [system]]))
 
+(defn tags->notes
+  "extract a map of tag -> set-of-docs entries."
+  []
+  (let [doc-entries (->> (filter-db (fn [_] true))
+                         (map #(select-keys % [:id :tags]))
+                         (map (fn [{:keys [id tags]}]
+                                (reduce (fn [r tag]
+                                          (update r tag (fn [docs] (conj (or docs #{}) id)))) {} tags))))]
+    (apply merge-with clojure.set/union doc-entries)))
+
 (defn -build-db-doc-entry [fpath]
   (let [doc (notes/parse-md-doc (slurp fpath))
         links (notes/extract-links (:content doc))]

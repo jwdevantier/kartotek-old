@@ -5,6 +5,7 @@
             [compojure.route :as route]
             [clojure.java.io :as io]
             ;[hiccup.core :refer [html]]
+            [hiccup.page :as hp]
             [app.core :as core]
             [app.notes :as notes]
             [app.filedb :as db]
@@ -25,72 +26,85 @@
              {:placeholder "type query here"}
              "search-query"
              value)
-            (submit-button {:class "btn" :style "margin-left: .4em;"} "search"))))
+            (submit-button {:class "btn" :style "margin-left: .4em;"} "🔍 Search"))))
 
-(defn note-index
-  "default"
-  [rq]
-  (let [notes (->> (notes/notes-paths notes/dir)
-                   (map (fn [fpath]
-                          (let [name (-> fpath io/file .getName)]
-                            [:li [:a {:href (str "/notes/" name)} name]]))))]
-    (print notes)
-    {:status 200
-     :body (html [:div (note-search-form) [:ul notes]])
-     :headers {"Content-Type" "text/html"}}))
-
-(defn note-search-result
-  "show single result"
-  [entry]
-  [:div {:style "margin-top: 1.5em; margin-bottom: 2em"}
-   [:a {:href (str "/notes/" (:id entry))} (:title entry)]
-   [:br]
-   (when-let [d (get entry :description)]
-     [:p {:style "margin-top: .2em; margin-bottom: .4em;"}d])
-   [:div
-    {:style "font-size: .9em;"}
-    [:span {:style "color: #909090; font-size: -1;"} "links: "]
-    [:ul
-     {:style "display: inline-block; list-style-type: none; padding: 0; margin: 0"}
-     (map (fn [note-id]
-            [:li
-             {:style "display: inline"}
-             [:a {:style "margin-left: .2em; margin-right: .2em"
-                  :href (str "/notes/" note-id)} note-id]]) (get entry :links #{}))]]
-
-   [:div
-    {:style "font-size: 0.9em;"}
-    [:span {:style "color: #909090;"} "tags: "]
-    [:ul
-     {:style "display: inline-block; list-style-type: none; padding: 0; margin: 0"}
-     (map (fn [tag]
-            [:li
-             {:style "display: inline;"}
-             [:a {:style "margin-left: .2em; margin-right: .2em;"
-                  :href (str "/tags/" tag)} tag]]) (get entry :tags #{}))]]])
-
-(defn note-search-rq
-  "handle search request, show results"
-  [rq]
-  (let [search-query (-> rq :params (get "search-query"))
-        results (db/search search-query)]
-    {:status 200
-     :headers {"Content-Type" "text/html"}
-     :body
-     (html [:div (note-search-form search-query)
-            [:hr]
-            (map note-search-result results)])}))
-
-
-;; TODO: ZERO error-handling here..
-;; (garbled contents, no file..)
+(defn page
+  ([content] (page {} content))
+  ([opts content]
+   {:status (get opts :status 200)
+    :headers {"Content-Type" "text/html"}
+    :body (hp/html5 [:head
+                     [:meta {:charset "utf-8"}]
+                     (hp/include-css "/reset.css")
+                     (hp/include-css "/style.css")
+                     (hp/include-css "/dracula.css")
+                     (hp/include-js "/highlight.pack.js")
+                     [:script "hljs.initHighlightingOnLoad();"]]
+                [:body content])}))
 
 (defn navbar
   []
   [:header
    [:h3 "Notes"]
    [:div {:class "search-form"} (note-search-form)]
-   [:nav [:a {:href "/"} "Back"]]])
+   [:nav
+    [:a {:href "/"} "Back"]
+    [:a {:href "#"} "Search Help"]
+    [:a {:href "#"} "Tag Index"]
+    [:a {:href "#"} "Saved Searches"]]])
+
+#_(defn note-index
+  "default"
+  [rq]
+  (let [notes (->> (notes/notes-paths notes/dir)
+                   (map (fn [fpath]
+                          (let [name (-> fpath io/file .getName)]
+                            [:li [:a {:href (str "/notes/" name)} name]]))))]
+    (page [:div (navbar)
+           [:ul notes]])))
+
+(defn note-index
+  "default"
+  [rq]
+  (let [tag->num-entries (->> (db/tags->notes)
+                              (map (fn [[k v]] [k (count v)]))
+                              (sort-by (fn [[k v]] k)))]
+    (page [:div (navbar)
+           [:ul {:class "tag-list"}
+            (map (fn [[tag count]]
+                   [:li [:div [:a {:href (str "/tags/" tag)} (str tag " - " count)]]]) tag->num-entries)]])))
+
+(defn note-search-result
+  "show single result"
+  [entry]
+  [:div {:class "search-result"}
+   [:a {:href (str "/notes/" (:id entry))} (:title entry)]
+   [:br]
+   (when-let [desc (get entry :description)]
+     [:p {:class "description"} desc])
+   [:div
+    {:class "metadata"}
+    [:span {:class "label"} "links: "]
+    [:ul
+     (map (fn [note-id]
+            [:li
+             [:a {:href (str "/notes/" note-id)} note-id]]) (get entry :links #{}))]]
+
+   [:div
+    {:class "metadata"}
+    [:span {:class "label"} "tags: "]
+    [:ul
+     (map (fn [tag]
+            [:li
+             [:a {:href (str "/tags/" tag)} tag]]) (get entry :tags #{}))]]])
+
+(defn note-search-rq
+  "handle search request, show results"
+  [rq]
+  (let [search-query (-> rq :params (get "search-query"))
+        results (db/search search-query)]
+    (page [:div (navbar)
+           (map note-search-result results)])))
 
 (defn layout-note
   [{:keys [content]}]
@@ -98,15 +112,12 @@
    (navbar)
    [:article {:class "note"} content]])
 
-
 (defn note-show
   "default"
   [rq]
   (let [id (-> rq :params :id)
         note (notes/parse-md-doc (slurp (str notes/dir "/" id)))]
-    {:status 200
-     :body (html (layout-note note))
-     :headers {"Content-Type" "text/html"}}))
+    (page (layout-note note))))
 
 (defroutes app-routes
   (GET "/" [] note-index)
