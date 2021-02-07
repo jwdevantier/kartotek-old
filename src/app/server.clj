@@ -97,6 +97,11 @@
              [:p "no results found for your query..."]
              (map note-search-result results))])))
 
+(defn search-help
+  "show page explaining search syntax"
+  []
+  (page [:div "TODO: fix one I understand how to package resources..."]))
+
 (defn tag-show-docs
   "show list of results for given tag"
   [rq]
