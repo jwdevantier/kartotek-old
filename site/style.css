@@ -176,3 +176,6 @@ header {
     background-color: white;
 }
 
+nav > a {
+    margin-right: .2em;
+}

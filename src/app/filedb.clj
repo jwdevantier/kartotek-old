@@ -118,7 +118,8 @@
 (defn search
   "return results for search"
   [query]
-  (-> query parse-query -query-ast->filter-fn filter-db))
+  (when-not (empty? query)
+    (-> query parse-query -query-ast->filter-fn filter-db)))
 
 (defn start
   "start file database"
