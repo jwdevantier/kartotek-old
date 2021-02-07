@@ -65,9 +65,9 @@
 
 (defn note-search-result
   "show single result"
-  [entry]
+  [{:keys [id title description] :as entry}]
   [:div {:class "search-result"}
-   [:a {:href (str "/notes/" (:id entry))} (:title entry)]
+   [:a {:href (str "/notes/" (:id entry))} (if (empty? title) id title)]
    [:br]
    (when-let [desc (get entry :description)]
      [:p {:class "description"} desc])
