@@ -52,3 +52,8 @@
                                (conj acc e))) [])
          (string/join file-sep)
          (str prefix))))
+
+(defn cwd-path
+  "get current working directory"
+  []
+  (System/getProperty "user.dir"))
