@@ -1,4 +1,5 @@
-{:deps {ring/ring-core {:mvn/version "1.8.2"}
+{:deps {org.clojure/clojure {:mvn/version "1.10.2"}
+        ring/ring-core {:mvn/version "1.8.2"}
         ring/ring-jetty-adapter {:mvn/version "1.8.2"}
         ring/ring-devel {:mvn/version "1.8.2"}
         compojure/compojure {:mvn/version "1.6.2"}
@@ -8,5 +9,8 @@
         hawk/hawk {:mvn/version "0.2.11"}
         org.rssys/context {:mvn/version "0.1.4"}
         instaparse/instaparse {:mvn/version "1.4.10"}}
- :paths ["src"]
- :aliases {:dev {:extra-paths ["dev"]}}}
+ :paths ["src" "classes"]
+ :aliases {:dev {:extra-paths ["dev"]}
+           :uberjar {:replace-deps {uberdeps/uberdeps {:mvn/version "1.0.4"}}
+                     :replace-paths []
+                     :main-opts ["-m" "uberdeps.uberjar" "--main-class" "app.core"]}}}
