@@ -6,7 +6,6 @@
             [clojure.java.io :as io]
             ;[hiccup.core :refer [html]]
             [hiccup.page :as hp]
-            [app.core :as core]
             [app.notes :as notes]
             [app.filedb :as db]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]

@@ -7,6 +7,18 @@
             [app.notes :as notes]
             [app.state :refer [system]]))
 
+
+(defn filter-db
+  "Returns a lazy sequence of the items in the database
+  for which `pred` returns logical true."
+  [pred]
+  (let [db (-> system
+               (ctx/get-component :filedb)
+               :state-obj
+               :db
+               deref)]
+    (filter pred (for [[fname entry] db] (assoc entry :id fname)))))
+
 (defn tags->notes
   "extract a map of tag -> set-of-docs entries."
   []
@@ -46,17 +58,6 @@
                                     (dissoc v (.getName file))
                                     (assoc v (.getName file)
                                            (-build-db-doc-entry file))))))}]))
-
-(defn filter-db
-  "Returns a lazy sequence of the items in the database
-  for which `pred` returns logical true."
-  [pred]
-  (let [db (-> system
-               (ctx/get-component :filedb)
-               :state-obj
-               :db
-               deref)]
-    (filter pred (for [[fname entry] db] (assoc entry :id fname)))))
 
 ;; Parser definition
 ;; -----------------
@@ -119,7 +120,7 @@
   "return results for search"
   [query]
   (when-not (empty? query)
-    (-> query parse-query -query-ast->filter-fn filter-db)))
+    (-> query parse-query -query-ast->filter filter-db)))
 
 (defn start
   "start file database"
