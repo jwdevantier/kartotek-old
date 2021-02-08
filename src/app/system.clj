@@ -2,7 +2,24 @@
   (:require [org.rssys.context.core :as context]
             [app.server :as server]
             [app.filedb :as filedb]
-            [app.state :refer [system]]))
+            [app.state :refer [system]]
+            [app.utils :refer [deep-merge]]))
+
+(defn read-config
+  "blend config with defaults"
+  []
+  (deep-merge
+   ; defaults
+   {:web {:port 8081}
+    :db {:note-dir "notes"}}
+   (try (read-string (try (slurp "config.edn")
+                          (catch Exception e
+                            (do (println "config.edn not found, using default config...")
+                                "{}"))))
+        (catch Exception e
+          (do (println "Syntax error in config file:")
+              (println (str e))
+              {})))))
 
 (defn -build-system
   "build system"
@@ -14,10 +31,7 @@
      :start-deps #{}
      :start-fn
      (fn [cfg]
-       (println ":cfg component starting")
-       (println cfg)
-       {:web {:port 8081}
-        :db {:note-dir "/home/pseud/repos/cljblog/notes"}})
+       (read-config))
      :stop-fn
      (fn [state-obj]
        (println "stopping cfg")

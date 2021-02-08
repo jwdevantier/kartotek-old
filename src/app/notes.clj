@@ -5,8 +5,6 @@
             [clj-yaml.core :as yml]
             [app.iou :as iou]))
 
-; TODO: figure out a way to configure this...
-(def dir "/home/pseud/repos/cljblog/notes")
 
 (defn walk-dir
   "recursively walk through `dir` returning files matching `pattern`.
