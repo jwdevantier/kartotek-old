@@ -103,8 +103,8 @@
 
 (defn search-help
   "show page explaining search syntax"
-  []
-  (page [:div "TODO: fix one I understand how to package resources..."]))
+  [rq]
+  (page (notes/md->hiccup (slurp (io/resource "search-help.md")))))
 
 (defn tag-show-docs
   "show list of results for given tag"
@@ -141,7 +141,7 @@
 (defroutes app-routes
   (GET "/" [] tag-index)
   (POST "/search" [] search-rq)
-  (GET "/search/help" search-help)
+  (GET "/search/help" [] search-help)
   (GET "/notes/:id" [rq id] note-show)
   (GET "/assets/:asset" [rq id] asset-get)
   (GET "/tags/" [] tag-index)
