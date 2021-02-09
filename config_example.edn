@@ -1,0 +1,2 @@
+{:web {:port 8082}
+ :db {:notes-dir "notes"}}
