@@ -49,10 +49,10 @@
     :headers {"Content-Type" "text/html"}
     :body (hp/html5 [:head
                      [:meta {:charset "utf-8"}]
-                     (hp/include-css "assets/reset.css")
-                     (hp/include-css "assets/style.css")
-                     (hp/include-css "assets/dracula.css")
-                     (hp/include-js "assets/highlight.pack.js")
+                     (hp/include-css "/assets/reset.css")
+                     (hp/include-css "/assets/style.css")
+                     (hp/include-css "/assets/dracula.css")
+                     (hp/include-js "/assets/highlight.pack.js")
                      [:script "hljs.initHighlightingOnLoad();"]]
                     [:body (when navbar? (navbar)) content])}))
 
