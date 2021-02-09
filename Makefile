@@ -25,3 +25,7 @@ uberjar:  ## produce self-contained executable jar in targets/ folder
 	-echo "Creating uberjar..."
 	clojure -M:uberjar
 
+
+.PHONY: test
+test:  ## run tests
+	clojure -M:test
