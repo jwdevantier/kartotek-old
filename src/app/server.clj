@@ -101,11 +101,6 @@
              [:p "no results found for your query..."]
              (map note-search-result results))])))
 
-(defn search-help
-  "show page explaining search syntax"
-  [rq]
-  (page (notes/md->hiccup (slurp (io/resource "search-help.md")))))
-
 (defn tag-show-docs
   "show list of results for given tag"
   [rq]
@@ -130,6 +125,12 @@
                  slurp
                  notes/parse-md-doc)]
     (page (layout-note note))))
+
+(defn search-help
+  "show page explaining search syntax"
+  [rq]
+  (page [:div [:article {:class "note"}
+               (notes/md->hiccup (slurp (io/resource "search-help.md")))]]))
 
 (defn asset-get
   "retrieve asset, from local directory or internal resouce"
