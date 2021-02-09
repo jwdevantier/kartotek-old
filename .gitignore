@@ -18,3 +18,4 @@ notes/**/*.md
 # no actual compiled code
 classes/*
 target/*
+config.edn
