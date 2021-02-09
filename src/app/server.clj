@@ -51,7 +51,7 @@
                      [:meta {:charset "utf-8"}]
                      (hp/include-css "/assets/reset.css")
                      (hp/include-css "/assets/style.css")
-                     (hp/include-css "/assets/dracula.css")
+                     (hp/include-css "/assets/highlight.theme.css")
                      (hp/include-js "/assets/highlight.pack.js")
                      [:script "hljs.initHighlightingOnLoad();"]]
                     [:body (when navbar? (navbar)) content])}))
