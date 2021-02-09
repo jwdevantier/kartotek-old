@@ -59,13 +59,13 @@
 (defn extract-links
   "extracts links to other documents from the document's hiccup AST."
   [note-dir hiccup]
-  (letfn [(inner [node links]
-            (if (and (vector? node)
-                     (= (get node 0) :a))
-              (let [href (get (get node 1) :href)]
-                (println "file '" href "' exists?")
-                (if (-> note-dir (java.io.File. href) .exists)
-                  (conj links href)
-                  links))
-              links))]
-    (inner hiccup #{})))
+  (letfn [(inner [links node]
+            (if (not (vector? node))
+              links
+              (if (= (first node) :a)
+                (conj links (get-in node [1 :href]))
+                (reduce inner links node))))]
+    (->> hiccup
+         (inner #{})
+         (filter #(.exists (java.io.File. note-dir %)))
+         (into #{}))))

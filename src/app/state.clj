@@ -7,3 +7,9 @@
   "read config"
   []
   (-> system (ctx/get-component :cfg) (get :state-obj nil)))
+
+(defn get-notes-path
+  "get note directory path"
+  []
+  (or (get-in (get-config) [:db :note-dir])
+      "notes"))

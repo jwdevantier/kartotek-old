@@ -5,7 +5,7 @@
             [org.rssys.context.core :as ctx]
             [instaparse.core :as insta]
             [app.notes :as notes]
-            [app.state :refer [system]]))
+            [app.state :refer [system get-notes-path]]))
 
 
 (defn filter-db
@@ -30,8 +30,9 @@
     (apply merge-with clojure.set/union doc-entries)))
 
 (defn -build-db-doc-entry [fpath]
+
   (let [doc (notes/parse-md-doc (slurp fpath))
-        links (notes/extract-links (-> fpath java.io.File. .getParent) (:content doc))]
+        links (notes/extract-links (get-notes-path) (:content doc))]
     ; ensure all fields exist, even if no value was provided in doc meta data
     (merge {:title "" :description "" :tags #{} :links #{}}
            (assoc (:meta doc) :links links))))
