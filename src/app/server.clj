@@ -8,6 +8,7 @@
             [hiccup.page :as hp]
             [app.notes :as notes]
             [app.filedb :as db]
+            [app.state :as state]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.file :refer :all]
@@ -119,7 +120,11 @@
   "default"
   [rq]
   (let [id (-> rq :params :id)
-        note (notes/parse-md-doc (slurp (str notes/dir "/" id)))]
+        note (-> (state/get-config)
+                 (get-in [:db :note-dir])
+                 (java.io.File. id)
+                 slurp
+                 notes/parse-md-doc)]
     (page (layout-note note))))
 
 (defroutes app-routes

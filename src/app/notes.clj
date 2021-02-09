@@ -57,12 +57,15 @@
       (update :content md->hiccup)))
 
 (defn extract-links
-  "extracts destination of each link found in page's hiccup AST."
-  ([doc] (extract-links doc #{}))
-  ([doc links]
-   (if (not (vector? doc))
-     links
-     (if (= (get doc 0) :a)
-       (conj links (-> doc (get 1) (get :href)))
-       (reduce (fn [links doc]
-                 (extract-links doc links)) links doc)))))
+  "extracts links to other documents from the document's hiccup AST."
+  [note-dir hiccup]
+  (letfn [(inner [node links]
+            (if (and (vector? node)
+                     (= (get node 0) :a))
+              (let [href (get (get node 1) :href)]
+                (println "file '" href "' exists?")
+                (if (-> note-dir (java.io.File. href) .exists)
+                  (conj links href)
+                  links))
+              links))]
+    (inner hiccup #{})))
