@@ -3,18 +3,22 @@
   (:require [ring.adapter.jetty :as ring]
             [compojure.core :refer :all]
             [compojure.route :as route]
+            [clojure.string :as string]
             [clojure.java.io :as io]
             ;[hiccup.core :refer [html]]
-            [hiccup.page :as hp]
-            [app.notes :as notes]
-            [app.filedb :as db]
-            [app.state :as state]
+            [ring.util.response :refer [file-response resource-response]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.file :refer :all]
             [ring.middleware.content-type :refer :all]
             [ring.middleware.not-modified :refer :all]
-            [clojure.string :as string]))
+            [hiccup.page :as hp]
+            [app.notes :as notes]
+            [app.filedb :as db]
+            [app.state :as state]
+            ))
+
+
 
 (defn note-search-form
   ""
@@ -45,10 +49,10 @@
     :headers {"Content-Type" "text/html"}
     :body (hp/html5 [:head
                      [:meta {:charset "utf-8"}]
-                     (hp/include-css "/reset.css")
-                     (hp/include-css "/style.css")
-                     (hp/include-css "/dracula.css")
-                     (hp/include-js "/highlight.pack.js")
+                     (hp/include-css "assets/reset.css")
+                     (hp/include-css "assets/style.css")
+                     (hp/include-css "assets/dracula.css")
+                     (hp/include-js "assets/highlight.pack.js")
                      [:script "hljs.initHighlightingOnLoad();"]]
                     [:body (when navbar? (navbar)) content])}))
 
@@ -127,11 +131,19 @@
                  notes/parse-md-doc)]
     (page (layout-note note))))
 
+(defn asset-get
+  "retrieve asset, from local directory or internal resouce"
+  [rq]
+  (let [asset (-> rq :params :asset)]
+    (or (file-response asset {:root "assets"})
+        (resource-response (str "assets/" asset)))))
+
 (defroutes app-routes
   (GET "/" [] tag-index)
   (POST "/search" [] search-rq)
   (GET "/search/help" search-help)
   (GET "/notes/:id" [rq id] note-show)
+  (GET "/assets/:asset" [rq id] asset-get)
   (GET "/tags/" [] tag-index)
   (GET "/tags/:tag" [rq tag] tag-show-docs)
   (route/not-found "not found"))
@@ -140,7 +152,6 @@
   (-> app-routes
       (wrap-reload)
       wrap-multipart-params
-      (wrap-file "site")
       (wrap-content-type)
       (wrap-not-modified)))
 
