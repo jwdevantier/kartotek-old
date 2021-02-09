@@ -12,11 +12,17 @@ For more information on the search/query language, see [search help](resources/s
 
 ## Building the application
 
-To build the application, you only need a functioning Java VM and [Clojure](https://clojure.org/guides/getting_started) installed on your machine.
+To build the application, you only need
+
+1. A functioning Java VM
+2. [Clojure](https://clojure.org/guides/getting_started)
+3. The `make` program
+
+ a functioning Java VM and  installed on your machine.
 
 From there, you can build a self-contained jar like so:
 ```
-clojure -M:uberjar
+make uberjar
 ```
 
 ## Running the application
