@@ -19,3 +19,10 @@ notes/**/*.md
 classes/*
 target/*
 config.edn
+
+# clojurescript & js
+# ------------------
+.shadow-cljs
+node_modules/
+# compiled JS, source maps etc. Discard.
+resources/assets/js
