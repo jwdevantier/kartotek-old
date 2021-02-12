@@ -9,7 +9,7 @@
         hawk/hawk {:mvn/version "0.2.11"}
         org.rssys/context {:mvn/version "0.1.4"}
         instaparse/instaparse {:mvn/version "1.4.10"}}
- :paths ["src" "classes" "resources"]
+ :paths ["src/clj" "classes" "resources"]
  :aliases {:dev {:extra-paths ["dev"]}
            :uberjar {:replace-deps {uberdeps/uberdeps {:mvn/version "1.0.4"}}
                      :replace-paths []
