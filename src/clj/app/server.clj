@@ -9,9 +9,11 @@
             [ring.util.response :refer [file-response resource-response]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.json :refer [wrap-json-response]]
             [ring.middleware.file :refer :all]
             [ring.middleware.content-type :refer :all]
             [ring.middleware.not-modified :refer :all]
+            [ring.util.response :refer [response]]
             [hiccup.page :as hp]
             [app.notes :as notes]
             [app.filedb :as db]
@@ -62,10 +64,21 @@
   (let [tag->num-entries (->> (db/tags->notes)
                               (map (fn [[k v]] [k (count v)]))
                               (sort-by (fn [[k v]] k)))]
+    (pp/pprint rq)
     (page [:div
            [:ul {:class "tag-list"}
             (map (fn [[tag count]]
                    [:li [:div [:a {:href (str "/tags/" tag)} (str tag " - " count)]]]) tag->num-entries)]])))
+
+(defn api-tag-index
+  "return tag list"
+  [rq]
+  (let [tag->num-entries (->> (db/tags->notes)
+                              (map (fn [[k v]] [k (count v)]))
+                              (sort-by (fn [[k _]] k)))]
+    (response {:status 200
+     :headers {"Content-Type" "application/json; charset=utf-8"}
+     :body {"hello" "world"}})))
 
 (defn note-search-result
   "show single result"
@@ -147,14 +160,16 @@
   (GET "/assets/:asset" [rq id] asset-get)
   (GET "/tags/" [] tag-index)
   (GET "/tags/:tag" [rq tag] tag-show-docs)
+  (GET "/api/tags" [] api-tag-index)
   (route/not-found "not found"))
 
 (def preview-server
   (-> app-routes
-      (wrap-reload)
+      wrap-reload
+      wrap-json-response
       wrap-multipart-params
-      (wrap-content-type)
-      (wrap-not-modified)))
+      wrap-content-type
+      wrap-not-modified))
 
 (defn start
   "start server component"
