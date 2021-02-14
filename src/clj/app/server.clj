@@ -1,11 +1,9 @@
 (ns app.server
   (:use [hiccup core form])
-  (:require [ring.adapter.jetty :as ring]
-            [compojure.core :refer :all]
-            [compojure.route :as route]
+  (:require [ring.adapter.jetty :as jetty]
             [clojure.string :as string]
             [clojure.java.io :as io]
-            ;[hiccup.core :refer [html]]
+            [clojure.pprint :as pp]
             [ring.util.response :refer [file-response resource-response]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.reload :refer [wrap-reload]]
@@ -14,13 +12,16 @@
             [ring.middleware.content-type :refer :all]
             [ring.middleware.not-modified :refer :all]
             [ring.util.response :refer [response]]
+            [ring.middleware.cors :refer [wrap-cors]]
+            [reitit.ring :as rr]
+            [reitit.swagger :as swagger]
+            [reitit.swagger-ui :as swagger-ui]
+            [reitit.ring.middleware.parameters :as parameters]
             [hiccup.page :as hp]
             [app.notes :as notes]
             [app.filedb :as db]
             [app.state :as state]
-            ))
-
-
+            [app.env :as env]))
 
 (defn note-search-form
   ""
@@ -77,8 +78,8 @@
                               (map (fn [[k v]] [k (count v)]))
                               (sort-by (fn [[k _]] k)))]
     (response {:status 200
-     :headers {"Content-Type" "application/json; charset=utf-8"}
-     :body {"hello" "world"}})))
+               :headers {"Content-Type" "application/json; charset=utf-8"}
+               :body {"hello" "world"}})))
 
 (defn note-search-result
   "show single result"
@@ -117,7 +118,7 @@
 (defn tag-show-docs
   "show list of results for given tag"
   [rq]
-  (let [tag (-> rq :params :tag)
+  (let [tag (-> rq :path-params :tag)
         results (db/filter-db (fn [e] (contains? (get e :tags #{}) tag)))]
     (page [:div
            [:h2 (str "Showing documents tagged '" tag "'...")]
@@ -131,7 +132,7 @@
 (defn note-show
   "default"
   [rq]
-  (let [id (-> rq :params :id)
+  (let [id (-> rq :path-params :id)
         note (-> (state/get-config)
                  (get-in [:db :note-dir])
                  (java.io.File. id)
@@ -145,26 +146,82 @@
   (page [:div [:article {:class "note"}
                (notes/md->hiccup (slurp (io/resource "search-help.md")))]]))
 
-(defn asset-get
-  "retrieve asset, from local directory or internal resouce"
-  [rq]
-  (let [asset (-> rq :params :asset)]
-    (or (file-response asset {:root "assets"})
-        (resource-response (str "assets/" asset)))))
+(defn file-or-resource-route
+  ""
+  ([root-dir] (file-or-resource-route root-dir {}))
+  ([root-dir {:keys [label] :or {label :item}}]
+   (fn [rq]
+     (let [item (-> rq :path-params (get label))]
+       (or (file-response item {:root root-dir})
+           (resource-response (->> item
+                                   (java.io.File. root-dir)
+                                   .getPath)))))))
 
-(defroutes app-routes
-  (GET "/" [] tag-index)
-  (POST "/search" [] search-rq)
-  (GET "/search/help" [] search-help)
-  (GET "/notes/:id" [rq id] note-show)
-  (GET "/assets/:asset" [rq id] asset-get)
-  (GET "/tags/" [] tag-index)
-  (GET "/tags/:tag" [rq tag] tag-show-docs)
-  (GET "/api/tags" [] api-tag-index)
-  (route/not-found "not found"))
+(defn asset-main-js [rq]
+  (or (file-response "main.js" {:root "assets/js"})
+      (resource-response "assets/js/main.js")))
+
+(defn default-handler [rq]
+  {:status 404
+   :headers {"Content-Type" "application/json; charset=utf-8"}
+   :body {:error {:message "route not found"}}})
+
+(def routes-swagger
+  [["/swagger.json"
+    {:get {:no-doc true
+           :swagger {:info {:title "Kartotek API"
+                            :description "Kartotek system API"}}
+           :handler (swagger/create-swagger-handler)}}]
+   ["/api/docs/*"
+    {:get (swagger-ui/create-swagger-ui-handler)}]
+
+   ["/assets/"
+    [":file"
+     {:get {:no-doc true
+            :handler (file-or-resource-route "assets" {:label :file})}}]
+    ["js/:file"
+     {:get {:no-doc true
+            :handler (file-or-resource-route "assets/js" {:label :file})}}]]])
+
+(def routes-app
+  [["/" {:get {:no-doc true
+               :handler tag-index}}]
+   ["/search" {:post {:no-doc true
+                      :handler search-rq}}]
+   ["/search/help" {:get {:no-doc true
+                          :handler search-help}}]
+   ["/notes/:id" {:get {:no-doc true
+                        :handler note-show}}]
+   ["/tags/" {:get {:no-doc true
+                    :handler tag-index}}]
+   ["/tags/:tag" {:get {:no-doc true
+                        :handler tag-show-docs}}]])
+
+(def routes-dev
+  [["/js/cljs-runtime/:file"
+    {:get {:no-doc true
+           :handler (file-or-resource-route "assets/js/cljs-runtime" {:label :file})}}]])
+
+(def routes-api
+  [])
+
+(def routes-all
+  (into [] (concat routes-swagger routes-app (when (env/dev?)
+                                               routes-dev) routes-api)))
+
+(def app-routes
+  (rr/ring-handler
+   (rr/router
+    routes-all
+    ;opts
+    {:data {:middleware [swagger/swagger-feature
+                         parameters/parameters-middleware]}})
+   default-handler))
 
 (def preview-server
   (-> app-routes
+      (wrap-cors :access-control-allow-origin [#"http://localhost(.*)?"]
+                 :access-control-allow-methods [:get :put :patch :post :delete])
       wrap-reload
       wrap-json-response
       wrap-multipart-params
@@ -175,7 +232,7 @@
   "start server component"
   [{:keys [port]}]
   (println "starting server...")
-  (ring/run-jetty #'preview-server {:port port :join? false}))
+  (jetty/run-jetty #'preview-server {:port port :join? false}))
 
 (defn stop
   "stop server component"
