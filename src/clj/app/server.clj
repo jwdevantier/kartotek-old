@@ -203,7 +203,9 @@
            :handler (file-or-resource-route "assets/js/cljs-runtime" {:label :file})}}]])
 
 (def routes-api
-  [])
+  [["/api/tags"
+    {:get {:no-doc true
+           :handler api-tag-index}}]])
 
 (def routes-all
   (into [] (concat routes-swagger routes-app (when (env/dev?)

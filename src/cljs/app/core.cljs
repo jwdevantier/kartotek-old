@@ -26,7 +26,7 @@
    [:div
     [shared-state]
     [:button#fetch {:on-click (fn []
-                                (http/GET (url "api" "tags")))} "fetch"]]])
+                                (http/GET (url "/api" "tags")))} "fetch"]]])
 
 
 (defn -start []
