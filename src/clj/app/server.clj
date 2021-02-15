@@ -28,7 +28,7 @@
   ([] (note-search-form nil))
   ([value]
    (form-to {:enctype "multipart/form-data"}
-            [:post "/search"]
+            [:post "/old/search"]
             (text-field
              {:placeholder "type query here"}
              "search-query"
@@ -41,8 +41,8 @@
    [:h3 "Notes"]
    [:div {:class "search-form"} (note-search-form)]
    [:nav
-    [:a {:href "/"} "Tag Index"]
-    [:a {:href "/search/help"} "Search Help"]
+    [:a {:href "/old/"} "Tag Index"]
+    [:a {:href "/old/search/help"} "Search Help"]
     [:a {:href "#"} "Saved Searches"]]])
 
 (defn page
@@ -69,7 +69,7 @@
     (page [:div
            [:ul {:class "tag-list"}
             (map (fn [[tag count]]
-                   [:li [:div [:a {:href (str "/tags/" tag)} (str tag " - " count)]]]) tag->num-entries)]])))
+                   [:li [:div [:a {:href (str "/old/tags/" tag)} (str tag " - " count)]]]) tag->num-entries)]])))
 
 (defn api-tag-index
   "return tag list"
@@ -85,7 +85,7 @@
   "show single result"
   [{:keys [id title description] :as entry}]
   [:div {:class "search-result"}
-   [:a {:href (str "/notes/" (:id entry))} (if (empty? title) id title)]
+   [:a {:href (str "/old/notes/" (:id entry))} (if (empty? title) id title)]
    [:br]
    (when-let [desc (get entry :description)]
      [:p {:class "description"} desc])
@@ -95,7 +95,7 @@
     [:ul
      (map (fn [note-id]
             [:li
-             [:a {:href (str "/notes/" note-id)} note-id]]) (get entry :links #{}))]]
+             [:a {:href (str "/old/notes/" note-id)} note-id]]) (get entry :links #{}))]]
 
    [:div
     {:class "metadata"}
@@ -103,7 +103,7 @@
     [:ul
      (map (fn [tag]
             [:li
-             [:a {:href (str "/tags/" tag)} tag]]) (get entry :tags #{}))]]])
+             [:a {:href (str "/old/tags/" tag)} tag]]) (get entry :tags #{}))]]])
 
 (defn search-rq
   "handle search request, show results"
@@ -178,24 +178,39 @@
    ["/assets/"
     [":file"
      {:get {:no-doc true
-            :handler (file-or-resource-route "assets" {:label :file})}}]
-    ["js/:file"
-     {:get {:no-doc true
-            :handler (file-or-resource-route "assets/js" {:label :file})}}]]])
+            :handler (file-or-resource-route "assets" {:label :file})}}]]])
 
 (def routes-app
-  [["/" {:get {:no-doc true
-               :handler tag-index}}]
-   ["/search" {:post {:no-doc true
-                      :handler search-rq}}]
-   ["/search/help" {:get {:no-doc true
-                          :handler search-help}}]
-   ["/notes/:id" {:get {:no-doc true
-                        :handler note-show}}]
-   ["/tags/" {:get {:no-doc true
-                    :handler tag-index}}]
-   ["/tags/:tag" {:get {:no-doc true
-                        :handler tag-show-docs}}]])
+  [["/"
+    {:get {:no-doc true
+           :handler
+           (fn [rq]
+            (-> (or (file-response "index.html" {:root "assets"})
+                    (resource-response (.getPath (java.io.File. "assets" "index.html"))))
+                ; honestly no idea why I have to set this, middleware should've handled it...
+                (assoc-in [:headers "Content-type"] "text/html")))}}]
+   ["/js/:file"
+    {:get {:no-doc true
+           :handler (file-or-resource-route "assets/js" {:label :file})}}]
+   ["/old/"
+    [""
+     {:get {:no-doc true
+            :handler tag-index}}]
+    ["search"
+     {:post {:no-doc true
+             :handler search-rq}}]
+    ["search/help"
+     {:get {:no-doc true
+            :handler search-help}}]
+    ["notes/:id"
+     {:get {:no-doc true
+            :handler note-show}}]
+    ["tags/"
+     {:get {:no-doc true
+            :handler tag-index}}]
+    ["tags/:tag"
+     {:get {:no-doc true
+            :handler tag-show-docs}}]]])
 
 (def routes-dev
   [["/js/cljs-runtime/:file"
