@@ -28,23 +28,17 @@
                    :id "search-query" :placeholder "query..."
                    :on-focus
                    (fn [_]
-                     (update! #(merge % {:focused? true :show? true}))
-                     (js/console.warn @state))
+                     (update! #(merge % {:focused? true :show? true})))
                    :on-blur
                    (fn [_]
-                     (js/console.warn "on-blur")
-                     (update! #(assoc % :focused? false))
-                     (js/console.warn @state))
+                     (update! #(assoc % :focused? false)))
                    :on-mouse-enter
                    (fn [_]
-                     (js/console.warn "on-mouse-enter")
-                     (update! #(assoc % :show? focused?))
-                     (js/console.warn @state))
+                     (update! #(assoc % :show? focused?)))
                    :auto-complete "off"
                    :value query
                    :on-change
                    (fn [event]
-                     (js/console.warn "on-change")
                      (update! #(assoc % :query (.. event -target -value))))}]
           [:input {:type "submit" :class "btn"
                    :style {:margin-left ".4em"}
@@ -57,9 +51,8 @@
                           :background-color "#222"
                           :color "white"}
                   :on-mouse-leave
-                  (fn [event]
-                    (update! #(assoc % :show? false))
-                    (js/console.warn @state))}
+                  (fn [_]
+                    (update! #(assoc % :show? false)))}
             [:ul {:style {:list-style "none"
                           :margin "0"
                           :padding "0"}}
@@ -72,14 +65,18 @@
 (defn get-component [component-name]
   (case component-name "search" #'search))
 
-(defn ^:export mount [dom-id component-name]
-  (let [existing (get @-mounted-components dom-id)]
-    (println (str "mounting component '" component-name "' at DOM element '" dom-id "'."))
-    (when (not (= existing component-name))
-      (rdom/render [(get-component component-name)] (gdom/getElement dom-id))
-      (swap! -mounted-components #(assoc % dom-id component-name)))))
+; expose function `mount` to mount a component in the HTML DOM
+(set! (.. js/window -mount)
+      (fn [dom-id component-name]
+        (let [existing (get @-mounted-components dom-id)]
+          (println (str "mounting component '" component-name "' at DOM element '" dom-id "'."))
+          (when (not (= existing component-name))
+            (rdom/render [(get-component component-name)] (gdom/getElement dom-id))
+            (swap! -mounted-components #(assoc % dom-id component-name))))))
 
-(set! (.. js/window -mount_component) mount)
+; export fn to show state
+(set! (.. js/window -showState)
+      (fn [] (js/console.warn @state)))
 
 (defn -start []
   ; (re-)mount all components

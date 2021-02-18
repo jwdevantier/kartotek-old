@@ -58,7 +58,7 @@
                      (hp/include-js "/assets/highlight.pack.js")
                      [:script {:type "text/javascript"} "hljs.initHighlightingOnLoad();"]]
                     [:body (when navbar? (navbar)) content (hp/include-js "/js/main.js")
-                     [:script {:type "text/javascript"} "mount_component('search-form', 'search');"]])}))
+                     [:script {:type "text/javascript"} "mount('search-form', 'search');"]])}))
 
 (defn tag-index
   "show 'index' sorted tags"
