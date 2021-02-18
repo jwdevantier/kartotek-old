@@ -39,7 +39,7 @@
   []
   [:header
    [:h3 "Notes"]
-   [:div {:class "search-form"} (note-search-form)]
+   [:div {:id "search-form" :class "search-form"}]
    [:nav
     [:a {:href "/old/"} "Tag Index"]
     [:a {:href "/old/search/help"} "Search Help"]
@@ -56,8 +56,9 @@
                      (hp/include-css "/assets/style.css")
                      (hp/include-css "/assets/highlight.theme.css")
                      (hp/include-js "/assets/highlight.pack.js")
-                     [:script "hljs.initHighlightingOnLoad();"]]
-                    [:body (when navbar? (navbar)) content])}))
+                     [:script {:type "text/javascript"} "hljs.initHighlightingOnLoad();"]]
+                    [:body (when navbar? (navbar)) content (hp/include-js "/js/main.js")
+                     [:script {:type "text/javascript"} "mount_component('search-form', 'search');"]])}))
 
 (defn tag-index
   "show 'index' sorted tags"
