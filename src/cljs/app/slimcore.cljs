@@ -2,7 +2,8 @@
   (:require [reagent.dom :as rdom]
             [reagent.core :as r]
             [goog.dom :as gdom]
-            [emotion.core :refer [defstyled]]))
+            [emotion.core :refer [defstyled]]
+            [app.localstorage :as localstorage]))
 
 (defonce -mounted-components (atom {}))
 (defonce state (r/atom {}))
@@ -43,9 +44,10 @@
           [:input {:type "submit" :class "btn"
                    :style {:margin-left ".4em"}
                    :value "🔍 Search!"
-                   :on-click (fn [e]
-                               (.preventDefault e)
-                               (js/console.warn "submit btn hit"))}]]
+                   :on-click
+                   (fn [e]
+                     (.preventDefault e)
+                     (js/console.warn "submit btn hit"))}]]
          (when show?
            [:div {:style {:position "fixed"
                           :background-color "#222"
