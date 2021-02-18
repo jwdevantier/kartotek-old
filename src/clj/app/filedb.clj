@@ -4,6 +4,7 @@
             [clojure.string :as string]
             [org.rssys.context.core :as ctx]
             [instaparse.core :as insta]
+            [taoensso.timbre :as timbre]
             [app.notes :as notes]
             [app.state :refer [system get-notes-path]]))
 
@@ -30,12 +31,15 @@
     (apply merge-with clojure.set/union doc-entries)))
 
 (defn -build-db-doc-entry [fpath]
-
-  (let [doc (notes/parse-md-doc (slurp fpath))
-        links (notes/extract-links (get-notes-path) (:content doc))]
-    ; ensure all fields exist, even if no value was provided in doc meta data
-    (merge {:title "" :description "" :tags #{} :links #{}}
-           (assoc (:meta doc) :links links))))
+  (try
+    (let [doc (notes/parse-md-doc (slurp fpath))
+            links (notes/extract-links (get-notes-path) (:content doc))]
+        ; ensure all fields exist, even if no value was provided in doc meta data
+        (merge {:title "" :description "" :tags #{} :links #{}}
+            (assoc (:meta doc) :links links)))
+    (catch Exception e
+      (timbre/warn (str "failed to load document '" fpath "': " (.getMessage e)))
+         nil)))
 
 (defn -build-db [dir]
   (reduce (fn [db fpath]
@@ -127,7 +131,7 @@
   "start file database"
   [{:keys [note-dir]}]
   (let [db (atom (-build-db note-dir))]
-    (println "starting file database...")
+    (println (str "starting file database (notes dir: " note-dir ")"))
     ; scan all dirs, populate
     {:db db
      :watcher (-watch-notes-dirs db [note-dir])}))
