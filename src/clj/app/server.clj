@@ -7,7 +7,7 @@
             [ring.util.response :refer [file-response resource-response]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.reload :refer [wrap-reload]]
-            [ring.middleware.json :refer [wrap-json-response]]
+            [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.middleware.file :refer :all]
             [ring.middleware.content-type :refer :all]
             [ring.middleware.not-modified :refer :all]
@@ -21,7 +21,8 @@
             [app.notes :as notes]
             [app.filedb :as db]
             [app.state :as state]
-            [app.env :as env]))
+            [app.env :as env]
+            [app.api.routes :as api]))
 
 (defn note-search-form
   ""
@@ -71,16 +72,6 @@
            [:ul {:class "tag-list"}
             (map (fn [[tag count]]
                    [:li [:div [:a {:href (str "/old/tags/" tag)} (str tag " - " count)]]]) tag->num-entries)]])))
-
-(defn api-tag-index
-  "return tag list"
-  [rq]
-  (let [tag->num-entries (->> (db/tags->notes)
-                              (map (fn [[k v]] [k (count v)]))
-                              (sort-by (fn [[k _]] k)))]
-    (response {:status 200
-               :headers {"Content-Type" "application/json; charset=utf-8"}
-               :body {"hello" "world"}})))
 
 (defn note-search-result
   "show single result"
@@ -181,15 +172,25 @@
      {:get {:no-doc true
             :handler (file-or-resource-route "assets" {:label :file})}}]]])
 
+(defn get-index-page [rq]
+  (-> (or (file-response "index.html" {:root "assets"})
+          (resource-response (.getPath (java.io.File. "assets" "index.html"))))
+                ; honestly no idea why I have to set this, middleware should've handled it...
+      (assoc-in [:headers "Content-type"] "text/html")))
+
 (def routes-app
   [["/"
     {:get {:no-doc true
-           :handler
-           (fn [rq]
-            (-> (or (file-response "index.html" {:root "assets"})
-                    (resource-response (.getPath (java.io.File. "assets" "index.html"))))
-                ; honestly no idea why I have to set this, middleware should've handled it...
-                (assoc-in [:headers "Content-type"] "text/html")))}}]
+           :handler get-index-page}}]
+   ["/notes/:id"
+    {:get {:no-doc true
+           :handler get-index-page}}]
+   ["/tags"
+    {:get {:no-doc true
+           :handler get-index-page}}]
+   ["/tags/:id"
+    {:get {:no-doc true
+           :handler get-index-page}}]
    ["/js/:file"
     {:get {:no-doc true
            :handler (file-or-resource-route "assets/js" {:label :file})}}]
@@ -218,14 +219,9 @@
     {:get {:no-doc true
            :handler (file-or-resource-route "assets/js/cljs-runtime" {:label :file})}}]])
 
-(def routes-api
-  [["/api/tags"
-    {:get {:no-doc true
-           :handler api-tag-index}}]])
-
 (def routes-all
   (into [] (concat routes-swagger routes-app (when (env/dev?)
-                                               routes-dev) routes-api)))
+                                               routes-dev) api/routes)))
 
 (def app-routes
   (rr/ring-handler
@@ -242,6 +238,7 @@
                  :access-control-allow-methods [:get :put :patch :post :delete])
       wrap-reload
       wrap-json-response
+      wrap-json-body
       wrap-multipart-params
       wrap-content-type
       wrap-not-modified))
