@@ -40,7 +40,7 @@ Note the program will look for `config.edn` in the current working directory. By
 
 ```clojure
 {:web {:port 8081}
- :db {:notes-dir "notes"}}
+ :db {:note-dir "notes"}}
 ```
 
 ## Tweaking look & feel
