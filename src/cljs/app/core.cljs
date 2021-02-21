@@ -9,7 +9,8 @@
             [accountant.core :as accountant]
             [ajax.core :as http]
             [app.state :as state]
-            [app.search :as search]))
+            [app.search :as search]
+            [app.components.note :as note]))
 
 
 ; ---------------- router
@@ -23,7 +24,9 @@
      ["/:note-id" :note-show]]
     ["/tags"
      ["" :tags-index]
-     ["/:tag" :tag-results]]]))
+     ["/:tag" :tag-results]]
+    ["/search"
+     ["/help" :search-help]]]))
 
 (defn path-for [route & [params]]
   (if params
@@ -81,7 +84,7 @@
        :error-handler #(js/console.warn %)})
     (fn []
       (if-let [html @note]
-        [:div {:dangerouslySetInnerHTML {:__html html}}]
+        [note/render html]
         [:p "no note content"]))))
 
 (defn tag-results []
@@ -110,7 +113,8 @@
     :index #'search-page
     :tags-index #'tags-index
     :tag-results #'tag-results
-    :note-show #'note-show))
+    :note-show #'note-show
+    :search-help #'search/help))
 
 (defstyled -nav-item :li
   {:display "inline"
@@ -133,9 +137,9 @@
          [:ul {:style {:display "inline-block"
                        :list-style-type "none"}}
           [nav-item [:a {:href "/"} "Search"]]
-          [nav-item [:a {:href ""} "Search Help"]]
+          [nav-item [:a {:href "/search/help"} "Search Help"]]
           [nav-item [:a {:href "/tags"} "Tags"]]]]]
-       [:div {:style {:padding-top "4.5em"}}]
+       [:div]
        [page]])))
 
 ; ----------------

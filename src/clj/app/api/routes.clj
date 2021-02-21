@@ -1,6 +1,7 @@
 (ns app.api.routes
   (:require [app.api.tags :as tags]
-            [app.api.notes :as notes]))
+            [app.api.notes :as notes]
+            [app.api.search :as search]))
 
 (def routes
   [["/api/tags"
@@ -10,10 +11,14 @@
     ["/:tag"
      {:get {:summary "get all notes using tag"
             :handler tags/notes-list}}]]
-   ["/api/notes"
-    [""
+   ["/api/search"
+    ["/notes"
      {:post {:summary "retrieve notes matching search query"
-             :handler notes/search}}]
+             :handler search/query}}]
+    ["/notes/help"
+     {:get {:summary "retrieve help on searching for notes"
+             :handler search/help}}]]
+   ["/api/notes"
     ["/:note-id"
      {:get {:summary "return rendered note"
             :handler notes/note-show}}]]])

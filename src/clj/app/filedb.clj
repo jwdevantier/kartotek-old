@@ -1,13 +1,14 @@
 (ns app.filedb
-  (:require [hawk.core :as h]
+  (:require [clojure.pprint :as pp]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [hawk.core :as h]
             [org.rssys.context.core :as ctx]
             [instaparse.core :as insta]
             [taoensso.timbre :as timbre]
             [app.notes :as notes]
-            [app.state :refer [system get-notes-path]]))
-
+            [app.state :refer [system get-notes-path]]
+            [clojure.pprint :as pp]))
 
 (defn filter-db
   "Returns a lazy sequence of the items in the database
@@ -33,13 +34,13 @@
 (defn -build-db-doc-entry [fpath]
   (try
     (let [doc (notes/parse-md-doc (slurp fpath))
-            links (notes/extract-links (get-notes-path) (:content doc))]
+          links (notes/extract-links (get-notes-path) (:content doc))]
         ; ensure all fields exist, even if no value was provided in doc meta data
-        (merge {:title "" :description "" :tags #{} :links #{}}
-            (assoc (:meta doc) :links links)))
+      (merge {:title "" :description "" :tags #{} :links #{}}
+             (assoc (:meta doc) :links links)))
     (catch Exception e
       (timbre/warn (str "failed to load document '" fpath "': " (.getMessage e)))
-         nil)))
+      nil)))
 
 (defn -build-db [dir]
   (reduce (fn [db fpath]

@@ -20,10 +20,3 @@
     {:status 200
      :headers {"Content-Type" "text/html"}
      :body (hc/html (:content note))}))
-
-(defn search
-  "return results of search request."
-  [rq]
-  (let [search-query (get-in rq [:body "search-query"])
-        results (db/search search-query)]
-    (jsend/success results)))

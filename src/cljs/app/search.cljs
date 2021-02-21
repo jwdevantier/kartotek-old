@@ -2,7 +2,8 @@
   (:require [emotion.core :refer [defstyled]]
             [reagent.core :as r]
             [ajax.core :as http]
-            [app.state :as state]))
+            [app.state :as state]
+            [app.components.note :as note]))
 
 (defstyled -search-li :li
   {:padding "0 .9em .3em .9em"
@@ -57,42 +58,44 @@
           [:input {:type "text" :name "search-query"
                    :id "search-query" :placeholder "query..."
                    :style {:width "20em"}
-                   :on-focus
-                   (fn [_]
-                     (swap! cursor #(merge % {:focused? true :show? true})))
-                   :on-blur
-                   (fn [_]
-                     (swap! cursor #(assoc % :focused? false)))
-                   :on-mouse-enter
-                   (fn [_]
-                     (swap! cursor #(assoc % :show? focused?)))
+                   ;:on-focus
+                   ;(fn [_]
+                   ;  (swap! cursor #(merge % {:focused? true :show? true})))
+                   ;:on-blur
+                   ;(fn [_]
+                   ;  (swap! cursor #(assoc % :focused? false)))
+                   ;:on-mouse-enter
+                   ;(fn [_]
+                   ;  (swap! cursor #(assoc % :show? focused?)))
                    :auto-complete "off"
                    :value query
                    :on-change
                    (fn [event]
-                     (swap! cursor #(assoc % :query (.. event -target -value))))}]
+                     (let [query (.. event -target -value)]
+                       (swap! cursor #(assoc % :query query))
+                       (http/POST (str "/api/search/notes")
+                         {:format :json
+                          :params {"search-query" query}
+                          :handler #(do (js/console.warn "RQ OK")
+                                        (js/console.warn %)
+                                        (reset! results (get % "data")))
+                          :error-handler #(js/console.error %)})))}]
+
           [:input {:type "submit" :class "btn"
                    :style {:margin-left ".4em"}
                    :value "🔍 Search!"
                    :on-click
                    (fn [e]
                      (.preventDefault e)
-                     (swap! cursor
-                            (fn [{:keys [query latest-queries] :as s}]
-                              (if (some #(= % query) latest-queries)
-                                s (merge s {:latest-queries
-                                            (conj (if (>= (count latest-queries) 5)
-                                                    (into [] (drop 1 latest-queries))
-                                                    latest-queries) query)}))))
-                     (reset! results nil)
-                     (js/console.warn "sending query '" query "'...")
-                     (http/POST (str "/api/notes")
-                                {:format :json
-                                 :params {"search-query" query}
-                                 :handler #(do (js/console.warn "RQ OK")
-                                               (js/console.warn %)
-                                               (reset! results (get % "data")))
-                                 :error-handler #(js/console.error %)}))}]]
+                     #_(swap! cursor
+                              (fn [{:keys [query latest-queries] :as s}]
+                                (if (some #(= % query) latest-queries)
+                                  s (merge s {:latest-queries
+                                              (conj (if (>= (count latest-queries) 5)
+                                                      (into [] (drop 1 latest-queries))
+                                                      latest-queries) query)}))))
+                     #_(reset! results nil)
+                     #_(js/console.warn "sending query '" query "'..."))}]]
          (when (and show? latest-queries)
            [:div {:style {:position "fixed"
                           :background-color "#222"
@@ -114,3 +117,15 @@
              #_[search-li "t:programming -t:php"]
              #_[search-li "r:hello.md -t:programming"]
              #_[search-li "meget langt list item, liiiie hæææærrr"]]])]))))
+
+(defn help
+  "help page"
+  []
+  (let [rsp (r/atom nil)]
+    (fn []
+      (http/GET "/api/search/notes/help"
+        {:handler #(reset! rsp %)})
+      (if-let [html @rsp]
+        [note/render html]
+        #_[:article {:class "note" :dangerouslySetInnerHTML {:__html html}}]
+        [:p "fetching help page..."]))))
