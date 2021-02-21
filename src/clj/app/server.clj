@@ -177,42 +177,36 @@
           (resource-response (.getPath (java.io.File. "assets" "index.html"))))
                 ; honestly no idea why I have to set this, middleware should've handled it...
       (assoc-in [:headers "Content-type"] "text/html")))
-
-(def routes-app
-  [["/"
-    {:get {:no-doc true
-           :handler get-index-page}}]
-   ["/notes/:id"
-    {:get {:no-doc true
-           :handler get-index-page}}]
-   ["/tags"
-    {:get {:no-doc true
-           :handler get-index-page}}]
-   ["/tags/:id"
-    {:get {:no-doc true
-           :handler get-index-page}}]
-   ["/js/:file"
-    {:get {:no-doc true
-           :handler (file-or-resource-route "assets/js" {:label :file})}}]
-   ["/old/"
-    [""
-     {:get {:no-doc true
-            :handler tag-index}}]
-    ["search"
-     {:post {:no-doc true
-             :handler search-rq}}]
-    ["search/help"
-     {:get {:no-doc true
-            :handler search-help}}]
-    ["notes/:id"
-     {:get {:no-doc true
-            :handler note-show}}]
-    ["tags/"
-     {:get {:no-doc true
-            :handler tag-index}}]
-    ["tags/:tag"
-     {:get {:no-doc true
-            :handler tag-show-docs}}]]])
+(let [index-route {:get {:no-doc true
+                         :handler get-index-page}}]
+  (def routes-app
+    [["/" index-route]
+     ["/notes/:id" index-route]
+     ["/tags" index-route]
+     ["/tags/:id" index-route]
+     ["/search/help" index-route]
+     ["/js/:file"
+      {:get {:no-doc true
+             :handler (file-or-resource-route "assets/js" {:label :file})}}]
+     ["/old/"
+      [""
+       {:get {:no-doc true
+              :handler tag-index}}]
+      ["search"
+       {:post {:no-doc true
+               :handler search-rq}}]
+      ["search/help"
+       {:get {:no-doc true
+              :handler search-help}}]
+      ["notes/:id"
+       {:get {:no-doc true
+              :handler note-show}}]
+      ["tags/"
+       {:get {:no-doc true
+              :handler tag-index}}]
+      ["tags/:tag"
+       {:get {:no-doc true
+              :handler tag-show-docs}}]]]))
 
 (def routes-dev
   [["/js/cljs-runtime/:file"
