@@ -126,7 +126,6 @@
 (defn current-page []
   (fn []
     (let [page (:current-page (session/get :route))]
-      (js/console.warn (session/get :route))
       [:div
        [:header
         {:style {:position "fixed" :top 0 :left 0 :right 0
@@ -158,7 +157,6 @@
       (let [match (reitit/match-by-path router path)
             current-page (-> match :data :name)
             route-params (:path-params match)]
-        (js/console.warn "ACCOUNTANT NAV-HANDLER RUNNING")
         (session/put! :route {:current-page (page-for current-page)
                               :route-params route-params})))
     :path-exists?
