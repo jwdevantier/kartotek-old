@@ -7,12 +7,17 @@ body {
 }
 
 article.note {
-
     padding: 3em;
     padding-top: 0em;
     max-width: 66%;
     line-height: 1.8rem;
     font-size: 1.1rem;
+}
+
+/* Don't add more space between the top bar and the article's contents.*/
+/* Especially important for article with a top-level H1*/
+article.note :first-child {
+    margin-top: 0;
 }
 
 article.note h1 {

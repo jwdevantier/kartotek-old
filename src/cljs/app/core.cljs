@@ -54,11 +54,12 @@
       (let [{:keys [data filter-value]} @s]
         (if data
           [:div
+           {:style {:margin-left "2em"}}
            [:input {:type "text"
                     :placeholder "type to filter tags..."
                     :value filter-value
                     :on-change #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
-           [:ul {:style {:column-count "4" :padding "0 1em" :list-style-type "none"}}
+           [:ul {:style {:column-count "4" :padding "0" :list-style-type "none"}}
             (let [filter-tags (filter (complement empty?) (string/split filter-value #"\s+"))]
               (for [[tag count] data]
                 (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
