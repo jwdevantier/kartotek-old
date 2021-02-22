@@ -76,9 +76,7 @@
                        (http/POST (str "/api/search/notes")
                          {:format :json
                           :params {"search-query" query}
-                          :handler #(do (js/console.warn "RQ OK")
-                                        (js/console.warn %)
-                                        (reset! results (get % "data")))
+                          :handler #(reset! results (get % "data"))
                           :error-handler #(js/console.error %)})))}]
 
           [:input {:type "submit" :class "btn"
