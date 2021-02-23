@@ -10,16 +10,21 @@
             [app.state :refer [system get-notes-path]]
             [clojure.pprint :as pp]))
 
-(defn filter-db
-  "Returns a lazy sequence of the items in the database
+(letfn [(get-db []
+          (-> system
+              (ctx/get-component :filedb)
+              :state-obj
+              :db))]
+  (defn filter-db
+    "Returns a lazy sequence of the items in the database
   for which `pred` returns logical true."
-  [pred]
-  (let [db (-> system
-               (ctx/get-component :filedb)
-               :state-obj
-               :db
-               deref)]
-    (filter pred (for [[fname entry] db] (assoc entry :id fname)))))
+    [pred]
+    (filter pred (for [[fname entry] (-> (get-db) deref)] (assoc entry :id fname))))
+
+  (defn lookup
+    "get raw entry if it exists"
+    [id]
+    (get (deref (get-db)) id)))
 
 (defn tags->notes
   "extract a map of tag -> set-of-docs entries."
