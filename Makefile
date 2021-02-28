@@ -14,9 +14,16 @@ clean:  ## clean build files
 targets: ## list available tools.edn (deps.edn) commands you can run
 	clojure -M -e '(do (println "Targets: ") (doseq [target (-> "deps.edn" slurp read-string :aliases keys)] (println (str"* clojure -M:" (name target)))))'
 
-#.PHONY: repl
-#repl:  ## start a clojure/cider REPL
-#	clojure -M:repl
+.PHONY: repl-clj
+repl-clj:  ## start a clojure/cider REPL
+	clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version "0.8.3"} refactor-nrepl {:mvn/version "2.5.0"} cider/cider-nrepl {:mvn/version "0.25.5"}}}' -A:dev -m nrepl.cmdline --middleware '["refactor-nrepl.middleware/wrap-refactor","cider.nrepl/cider-middleware"]'
+
+.PHONY: repl-cljs
+repl-cljs:  ## start shadowcljs (note: need clojure server to see)
+	-echo "starting shadowcljs - will recompile on changes."
+	-echo ""
+	-echo "NOTE: you will need to start the Clojure server to visit the pages."
+	npx shadow-cljs watch :app
 
 .PHONY: uberjar
 uberjar:  ## produce self-contained executable jar in targets/ folder
