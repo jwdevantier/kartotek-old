@@ -14,7 +14,8 @@
 
 (def search-li (r/adapt-react-class -search-li))
 
-(let [meta-ul-attrs {:style {:display "inline-block" :list-style-type "none" :padding "0" :margin "0"}}]
+(let [meta-ul-attrs {:style {:display "inline-block" :list-style-type "none" :padding "0" :margin "0"}
+                     :class ["inline-block" "text-x-blue"]}]
   (defn search-result
     "render single search result"
     [{:strs [id title description links tags]
@@ -26,25 +27,31 @@
                 :padding-bottom ".5em"
                 :border-bottom "1px dotted #7a7a7a"}
         :key id}
-       [:a {:href (str "/notes/" id)} title]
+       [:a {:class ["text-x-green"] :href (str "/notes/" id)} title]
        [:br]
        (when description
-         [:p {:class "description"} description])
+         [:p {:class ["text-x-white"]} description])
        [:div
         {:style {:font-size ".9em"}}
-        [:span {:style {:color "#909090"}} "links: "]
-        [:ul meta-ul-attrs (for [note-id links]
-                             [:li {:style {:display "inline"} :key note-id} [:a {:style {:margin "0em .2em"} :href (str "/notes/" note-id)} note-id]])]]
+        [:span {:class ["text-x-grey-light"]} "links: "]
+        (if (> (count links) 0)
+          [:ul meta-ul-attrs (for [note-id links]
+                               [:li {:style {:display "inline"} :key note-id}
+                                [:a {:style {:margin "0em .2em"} :href (str "/notes/" note-id)} note-id]])]
+          [:p {:class ["inline-block" "text-x-white"]} "-"])]
        [:div
         {:style {:font-size ".9em"}}
-        [:span {:style {:color "#909090"}} "tags: "]
-        [:ul meta-ul-attrs (for [tag tags]
-                             [:li {:style {:display "inline"} :key tag} [:a {:style {:margin "0em .2em"} :href (str "/tags/" tag)} tag]])]]])))
+        [:span {:class ["text-x-grey-light"]} "tags: "]
+        (if (> (count tags) 0)
+          [:ul meta-ul-attrs (for [tag tags]
+                               [:li {:style {:display "inline"} :key tag} [:a {:style {:margin "0em .2em"} :href (str "/tags/" tag)} tag]])]
+          [:p {:class ["inline-block" "text-x-white"]} "-"])]])))
 
 ; TODO
 ; 1 - add btn to save a given query (whole purpose for this madness)
 ; 2 - limit recent queries list to some fixed number of entries
 ; 3 - ??? show saved queries in list? - if so, also allow to rm them
+
 
 (defn search [results & {:keys [state] :or {state ::search-form}}]
   (let [cursor (state/cursor [state] {:focused? false
@@ -58,15 +65,7 @@
           [:input {:type "text" :name "search-query"
                    :id "search-query" :placeholder "query..."
                    :style {:width "20em"}
-                   ;:on-focus
-                   ;(fn [_]
-                   ;  (swap! cursor #(merge % {:focused? true :show? true})))
-                   ;:on-blur
-                   ;(fn [_]
-                   ;  (swap! cursor #(assoc % :focused? false)))
-                   ;:on-mouse-enter
-                   ;(fn [_]
-                   ;  (swap! cursor #(assoc % :show? focused?)))
+                   :class "px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey text-x-white focus:outline-none"
                    :auto-complete "off"
                    :value query
                    :on-change
@@ -79,8 +78,9 @@
                           :handler #(reset! results (get % "data"))
                           :error-handler #(js/console.error %)})))}]
 
-          [:input {:type "submit" :class "btn"
+          [:input {:type "submit"
                    :style {:margin-left ".4em"}
+                   :class ["bg-blue-500" "text-sm" "rounded-lg" "font-bold" "text-white" "text-center" "px-4" "py-3"]
                    :value "🔍 Search!"
                    :on-click
                    (fn [e]

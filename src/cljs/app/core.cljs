@@ -10,6 +10,7 @@
             [ajax.core :as http]
             [app.state :as state]
             [app.search :as search]
+            [app.components.modal :as modal]
             [app.components.note :as note]))
 
 
@@ -65,12 +66,9 @@
                 (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
                   [:li {:key tag
                         :style {:padding-bottom ".9em"}} [:div
-                                   {:style {:display "inline-block"
-                                            :background-color "#d9d9d9"
-                                            :border ".15em solid #b4b4b4"
-                                            :padding ".2em 1em"
-                                            :font-weight "700"}}
-                                   [:a {:style {:color "#1d1d1d"
+                                   {
+                                    :class "inline-flex bg-purple-600 text-white rounded-full h-6 px-3 justify-center items-center"}
+                                   [:a {:style {:color "white"
                                                 :font-size ".9em"
                                                 :text-decoration "none"}
                                         :href (str "/tags/" tag)} (str tag " - " count)]]])))]]
@@ -129,17 +127,18 @@
     (let [page (:current-page (session/get :route))]
       [:div
        [:header
-        {:style {:position "fixed" :top 0 :left 0 :right 0
-                 :background-color "white"
-                 :border-bottom "1px solid #000"
-                 :color "#1d1d1d"}}
+        {:style {:position "fixed" :top 0 :left 0 :right 0}
+         :class ["bg-x-grey" "border-b-2" "border-x-grey-light"]}
         [:div
          [:ul {:style {:display "inline-block"
                        :list-style-type "none"}}
-          [nav-item [:a {:href "/"} "Search"]]
+          [nav-item [:a {:class ["mx-2" "my-2" "inline-block" "text-x-green" "text-center" "text-sm" "font-bold" "px-2" "py-1"] :href "/"} "Search"]]
           [nav-item [:a {:href "/search/help"} "Search Help"]]
-          [nav-item [:a {:href "/tags"} "Tags"]]]]]
+          [nav-item [:a {:href "/tags"} "Tags"]]
+          [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
+                         :on-click (fn [e] (modal/show! {:body [:p "hello, world"]}))} "Modal"]]]]]
        [:div]
+       [modal/component]
        [page]])))
 
 ; ----------------
