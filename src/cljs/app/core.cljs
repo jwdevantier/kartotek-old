@@ -100,10 +100,12 @@
 (let [search-results (state/cursor [:search-results] [])]
   (defn search-page []
     (fn []
-      [:div
-       [:div {:style {:margin-left "2em" :margin-bottom "1em"}} [search/search search-results]]
+      [:div {:class []}
+       [:div [search/search search-results]]
        (when @search-results
-         (map search/search-result @search-results))])))
+         [:div {:class "pt-4"}
+          (map search/search-result @search-results)]
+         )])))
 
 ; ---------------- route -> page component
 
@@ -136,7 +138,7 @@
           [nav-item [:a {:href "/search/help"} "Search Help"]]
           [nav-item [:a {:href "/tags"} "Tags"]]
           [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
-                         :on-click (fn [e] (modal/show! {:body [:p "hello, world"]}))} "Modal"]]]]]
+                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search-page)}))} "Modal"]]]]]
        [:div]
        [modal/component]
        [page]])))

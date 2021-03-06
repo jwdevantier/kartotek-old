@@ -23,7 +23,7 @@
       :as entry}]
     (when id
       [:div
-       {:style {:margin "0 2em 1.5em 2em"
+       {:style {:margin "0 0em 1.5em 0em"
                 :padding-bottom ".5em"
                 :border-bottom "1px dotted #7a7a7a"}
         :key id}
@@ -64,8 +64,7 @@
          [:form {:style {:margin-bottom "0"}}
           [:input {:type "text" :name "search-query"
                    :id "search-query" :placeholder "query..."
-                   :style {:width "20em"}
-                   :class "px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey text-x-white focus:outline-none"
+                   :class "px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
                    :auto-complete "off"
                    :value query
                    :on-change
@@ -76,24 +75,8 @@
                          {:format :json
                           :params {"search-query" query}
                           :handler #(reset! results (get % "data"))
-                          :error-handler #(js/console.error %)})))}]
+                          :error-handler #(js/console.error %)})))}]]
 
-          [:input {:type "submit"
-                   :style {:margin-left ".4em"}
-                   :class ["bg-blue-500" "text-sm" "rounded-lg" "font-bold" "text-white" "text-center" "px-4" "py-3"]
-                   :value "🔍 Search!"
-                   :on-click
-                   (fn [e]
-                     (.preventDefault e)
-                     #_(swap! cursor
-                              (fn [{:keys [query latest-queries] :as s}]
-                                (if (some #(= % query) latest-queries)
-                                  s (merge s {:latest-queries
-                                              (conj (if (>= (count latest-queries) 5)
-                                                      (into [] (drop 1 latest-queries))
-                                                      latest-queries) query)}))))
-                     #_(reset! results nil)
-                     #_(js/console.warn "sending query '" query "'..."))}]]
          (when (and show? latest-queries)
            [:div {:style {:position "fixed"
                           :background-color "#222"
