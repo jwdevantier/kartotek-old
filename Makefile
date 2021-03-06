@@ -25,6 +25,10 @@ repl-cljs:  ## start shadowcljs (note: need clojure server to see)
 	-echo "NOTE: you will need to start the Clojure server to visit the pages."
 	npx shadow-cljs watch :app
 
+.PHONY: dev-css
+dev-css:  ## watch css for changes and compile
+	npx postcss  src/css/cljs.css --dir resources/assets --watch
+
 .PHONY: uberjar
 uberjar:  ## produce self-contained executable jar in targets/ folder
 	-echo "precompiling class definition"
