@@ -15,13 +15,16 @@ module.exports = {
         'x-blue-dark': '#2257a0',
         'x-purple': '#a9a1e1',
         'x-pink': '#c678dd',
-        'x-red': '#ff6c6b'
+        'x-red': '#ff6c6b',
       }},
   },
   variants: {
     extend: {},
+    scrollbar: ['rounded'],
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar'),
+  ],
   purge: [
     './resources/assets/js/*.js',
     './resources/assets/index.html',
