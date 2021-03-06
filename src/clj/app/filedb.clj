@@ -111,7 +111,7 @@
                            (case (count term)
                              ; [[:STR "something"]]
                              1 (let [[_ search-string] b]
-                                 #(string/includes? (-> % :title) search-string))
+                                 #(string/includes? (get % :title "") search-string))
                              ; [[:R] [:STR "something"]]
                              ; [[:T] [:STR "something"]]
                              2 (let [[modifier] b
