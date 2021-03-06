@@ -26,3 +26,5 @@ config.edn
 node_modules/
 # compiled JS, source maps etc. Discard.
 resources/assets/js
+# compiled tailwindcss
+resources/assets/cljs.css
