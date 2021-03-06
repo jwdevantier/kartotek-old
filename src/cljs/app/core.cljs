@@ -103,7 +103,7 @@
       [:div {:class []}
        [:div [search/search search-results]]
        (when @search-results
-         [:div {:class "pt-4"}
+         [:div {:class "mt-4 max-h-full overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
           (map search/search-result @search-results)]
          )])))
 
