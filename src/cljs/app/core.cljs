@@ -128,7 +128,7 @@
           [nav-item [:a {:href "/search/help"} "Search Help"]]
           [nav-item [:a {:href "/tags"} "Tags"]]
           [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
-                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog)}))} "Modal"]]]]]
+                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))} "Modal"]]]]]
        [:div]
        [modal/component]
        [page]])))
