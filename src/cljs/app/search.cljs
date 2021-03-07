@@ -47,57 +47,27 @@
                                [:li {:style {:display "inline"} :key tag} [:a {:style {:margin "0em .2em"} :href (str "/tags/" tag)} tag]])]
           [:p {:class ["inline-block" "text-x-white"]} "-"])]])))
 
-; TODO
-; 1 - add btn to save a given query (whole purpose for this madness)
-; 2 - limit recent queries list to some fixed number of entries
-; 3 - ??? show saved queries in list? - if so, also allow to rm them
-
-
 (defn search [results & {:keys [state] :or {state ::search-form}}]
   (let [cursor (state/cursor [state] {:focused? false
                                       :show? false
                                       :query ""
                                       :latest-queries []})]
     (fn []
-      (let [{:keys [focused? show? query latest-queries]} @cursor]
-        [:div
-         [:form {:style {:margin-bottom "0"}}
-          [:input {:type "text" :name "search-query"
-                   :id "search-query" :placeholder "query..."
-                   :class "px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
-                   :auto-complete "off"
-                   :value query
-                   :on-change
-                   (fn [event]
-                     (let [query (.. event -target -value)]
-                       (swap! cursor #(assoc % :query query))
-                       (http/POST (str "/api/search/notes")
-                         {:format :json
-                          :params {"search-query" query}
-                          :handler #(reset! results (get % "data"))
-                          :error-handler #(js/console.error %)})))}]]
-
-         (when (and show? latest-queries)
-           [:div {:style {:position "fixed"
-                          :background-color "#222"
-                          :color "white"}
-                  :on-mouse-leave
-                  (fn [_]
-                    (swap! cursor #(assoc % :show? false)))}
-            [:ul {:style {:list-style "none"
-                          :margin "0"
-                          :padding "0"}}
-             (for [query (reverse latest-queries)]
-               [search-li
-                {:on-click (fn [_] (swap! cursor (fn [s] (merge s {:query query
-                                                                   :show? false}))))
-                 :key query}
-                query])
-             #_[search-li {:on-click #(js/console.warn "BOOM")} "t:blockchain!"]
-             #_[search-li "matrix"]
-             #_[search-li "t:programming -t:php"]
-             #_[search-li "r:hello.md -t:programming"]
-             #_[search-li "meget langt list item, liiiie hæææærrr"]]])]))))
+      (let [{:keys [query]} @cursor]
+        [:input {:type "text" :name "search-query"
+                 :id "search-query" :placeholder "query..."
+                 :class "w-full px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
+                 :auto-complete "off"
+                 :value query
+                 :on-change
+                 (fn [event]
+                   (let [query (.. event -target -value)]
+                     (swap! cursor #(assoc % :query query))
+                     (http/POST (str "/api/search/notes")
+                       {:format :json
+                        :params {"search-query" query}
+                        :handler #(reset! results (get % "data"))
+                        :error-handler #(js/console.error %)})))}]))))
 
 (defn help
   "help page"
