@@ -100,10 +100,10 @@
 (let [search-results (state/cursor [:search-results] [])]
   (defn search-page []
     (fn []
-      [:div {:class []}
-       [:div [search/search search-results]]
+      [:div {:class "flex flex-col"}
+       [:div {:class ["flex-none"]} [search/search search-results]]
        (when @search-results
-         [:div {:class "mt-4 max-h-full overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
+         [:div {:class "flex-grow mt-4 overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
           (map search/search-result @search-results)]
          )])))
 
