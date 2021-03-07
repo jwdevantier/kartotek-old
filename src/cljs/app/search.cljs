@@ -47,27 +47,31 @@
                                [:li {:style {:display "inline"} :key tag} [:a {:style {:margin "0em .2em"} :href (str "/tags/" tag)} tag]])]
           [:p {:class ["inline-block" "text-x-white"]} "-"])]])))
 
-(defn search [results & {:keys [state] :or {state ::search-form}}]
-  (let [cursor (state/cursor [state] {:focused? false
-                                      :show? false
-                                      :query ""
-                                      :latest-queries []})]
+(let [c-notes-search (state/cursor [:note-search] {:query ""
+                                                   :results []})]
+  (defn dialog []
     (fn []
-      (let [{:keys [query]} @cursor]
-        [:input {:type "text" :name "search-query"
-                 :id "search-query" :placeholder "query..."
-                 :class "w-full px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
-                 :auto-complete "off"
-                 :value query
-                 :on-change
-                 (fn [event]
-                   (let [query (.. event -target -value)]
-                     (swap! cursor #(assoc % :query query))
-                     (http/POST (str "/api/search/notes")
-                       {:format :json
-                        :params {"search-query" query}
-                        :handler #(reset! results (get % "data"))
-                        :error-handler #(js/console.error %)})))}]))))
+      (let [{:keys [results query]} @c-notes-search]
+        [:div {:class "flex flex-col w-full"}
+     ; search field
+         [:div {:class ["flex flex-none"]}
+          [:input {:type "text" :name "search-query"
+                   :id "search-query" :placeholder "query..."
+                   :class "w-full px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
+                   :auto-complete "off"
+                   :value query
+                   :on-change
+                   (fn [event]
+                     (let [query-value (.. event -target -value)]
+                       (swap! c-notes-search #(assoc % :query query-value))
+                       (http/POST (str "/api/search/notes")
+                         {:format :json
+                          :params {"search-query" query-value}
+                          :handler (fn [rsp] (swap! c-notes-search (fn [s] (assoc s :results (get rsp "data" [])))))
+                          :error-handler #(js/console.error %)})))}]]
+     ; search results
+         [:div {:class "flex flex-col flex-grow min-h-0 mt-4 overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
+          (map search-result results)]]))))
 
 (defn help
   "help page"

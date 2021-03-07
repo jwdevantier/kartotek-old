@@ -97,21 +97,11 @@
          [:p (str "no notes tagged with '" tag "'...")]
          (map search/search-result @results))])))
 
-(let [search-results (state/cursor [:search-results] [])]
-  (defn search-page []
-    (fn []
-      [:div {:class "flex flex-col w-full"}
-       [:div {:class ["flex flex-none"]} [search/search search-results]]
-       (when @search-results
-         [:div {:class "flex flex-col flex-grow min-h-0 mt-4 overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
-          (map search/search-result @search-results)]
-         )])))
-
 ; ---------------- route -> page component
 
 (defn page-for [route]
   (case route
-    :index #'search-page
+    :index #'search/dialog
     :tags-index #'tags-index
     :tag-results #'tag-results
     :note-show #'note-show
@@ -138,7 +128,7 @@
           [nav-item [:a {:href "/search/help"} "Search Help"]]
           [nav-item [:a {:href "/tags"} "Tags"]]
           [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
-                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search-page)}))} "Modal"]]]]]
+                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog)}))} "Modal"]]]]]
        [:div]
        [modal/component]
        [page]])))
