@@ -22,15 +22,20 @@
                      :class ["inline-block" "text-x-blue"]}]
   (defn search-result
     "render single search result"
-    [{:strs [id title description links tags]
-      :or {title id links #{} tags #{}}
+    [{:strs [id title description links tags active?]
+      :or {title id links #{} tags #{} active? false}
       :as entry}]
     (when id
       [:div
-       {:style {:margin "0 0em 1.5em 0em"
-                :padding-bottom ".5em"
+       {:style {:padding ".5em"
                 :border-bottom "1px dotted #7a7a7a"}
-        :key id}
+        :class (if active? ["bg-x-grey-dark" "border-x-blue" "border-l-4"] ["border-l-4" "border-transparent" ])
+        :key id
+        ; react reference - fn run @ component lifecycle start.
+        :ref (fn [el] (when (and el active?)
+                        (. el scrollIntoView (clj->js {:behavior "smooth"
+                                                       :block "nearest"
+                                                       :inline "nearest"}))))}
        [:a {:class ["text-x-green"] :href (str "/notes/" id)} title]
        [:br]
        (when description
@@ -89,6 +94,7 @@
                    :class "w-full px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
                    :auto-complete "off"
                    :value (get @cursor :query "")
+                   :ref (fn [el] (when el (. el focus)) )
                    :on-change
                    (fn [event]
                      (let [query-value (.. event -target -value)]
@@ -101,7 +107,8 @@
                           :error-handler #(js/console.error %)})))}]]
      ; search results
          [:div {:class "flex flex-col flex-grow min-h-0 mt-4 overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
-          (map search-result (get @cursor :results []))]])
+          (let [{:keys [results selected-ndx] :or {results [] selected-ndx 0}} @cursor]
+            (map-indexed (fn [ndx item] (search-result (assoc item "active?" (= ndx selected-ndx)))) results))]])
       :component-did-mount
       (fn search-dialog-did-mount [this]
         (let [e (rdom/dom-node this)]
