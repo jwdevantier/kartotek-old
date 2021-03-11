@@ -78,9 +78,11 @@ article.note ol {
 }
 
 article.note code {
+    @apply my-3 py-2 px-2;
     border-radius: .4rem;
     line-height: 1.3rem;
     font-size: 0.8rem;
+    font-weight: 600;
 }
 
 article.note footer {
