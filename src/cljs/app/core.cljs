@@ -149,6 +149,7 @@
       (let [match (reitit/match-by-path router path)
             current-page (-> match :data :name)
             route-params (:path-params match)]
+        (modal/close!) ; close modal on page transition
         (session/put! :route {:current-page (page-for current-page)
                               :route-params route-params})))
     :path-exists?
