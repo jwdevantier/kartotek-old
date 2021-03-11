@@ -27,5 +27,6 @@
       #(hl-code)
       :reagent-render
       (fn [html-str]
-        [:article {:ref #(reset! root-el %)
-                   :class "note" :dangerouslySetInnerHTML {:__html html-str}}])})))
+        [:article {:class ["note" "text-x-white"]
+                   :ref #(reset! root-el %)
+                   :dangerouslySetInnerHTML {:__html html-str}}])})))
