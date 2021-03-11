@@ -16,7 +16,7 @@ article.note {
 
 /* Don't add more space between the top bar and the article's contents.*/
 /* Especially important for article with a top-level H1*/
-article.note :first-child {
+article.note h1:first-of-type {
     margin-top: 0;
 }
 
