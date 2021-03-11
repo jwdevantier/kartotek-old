@@ -77,8 +77,11 @@ article.note ol {
     list-style: lower-alpha;
 }
 
+article.note pre > code {
+    @apply my-3 py-2 px-2 border border-x-grey-light;
+}
+
 article.note code {
-    @apply my-3 py-2 px-2;
     border-radius: .4rem;
     line-height: 1.3rem;
     font-size: 0.8rem;
