@@ -5,7 +5,9 @@
             [ajax.core :as http]
             [goog.events :as gevents]
             [goog.events.KeyCodes :as key]
+            [accountant.core :as accountant]
             [app.state :as state]
+            [app.components.modal :as modal]
             [app.components.note :as note])
   (:import [goog.events EventType KeyHandler]))
 
@@ -81,7 +83,13 @@
              (swap! cursor (fn [s] (assoc s :selected-ndx (let [{:keys [results selected-ndx]} s]
                                                             (max 0 (min (-> results count dec) (inc selected-ndx))))))))
         on-esc
-        #(on-close)]
+        #(on-close)
+        on-enter
+        #(do (js/console.log "ENTER")
+             (let [{:keys [results selected-ndx]} @cursor
+                   selected-result (get results selected-ndx nil)]
+               (accountant/navigate! (str "/notes/" (get selected-result "id")))
+               (modal/close!)))]
     (r/create-class
      {:display-name "search-dialog"
       :reagent-render
@@ -114,7 +122,8 @@
         (let [e (rdom/dom-node this)]
           (set! (. this -listener) (key-listener! {key/UP on-key-up
                                                    key/DOWN on-key-down
-                                                   key/ESC on-esc}))))
+                                                   key/ESC on-esc
+                                                   key/ENTER on-enter}))))
       :component-will-unmount
       (fn search-dialog-will-unmount [this]
         (. this listener))})))
