@@ -10,6 +10,7 @@
             [ajax.core :as http]
             [app.state :as state]
             [app.search :as search]
+            [app.components.base :refer [input-field search-dialog]]
             [app.components.modal :as modal]
             [app.components.note :as note]))
 
@@ -66,11 +67,11 @@
                 (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
                   [:li {:key tag
                         :style {:padding-bottom ".9em"}} [:div
-                                   {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
-                                   [:a {:style {:color "white"
-                                                :font-size ".9em"
-                                                :text-decoration "none"}
-                                        :href (str "/tags/" tag)} (str tag " - " count)]]])))]]
+                                                          {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
+                                                          [:a {:style {:color "white"
+                                                                       :font-size ".9em"
+                                                                       :text-decoration "none"}
+                                                               :href (str "/tags/" tag)} (str tag " - " count)]]])))]]
 
           [:div "fetching results..."])))))
 
@@ -112,7 +113,36 @@
 
 (def nav-item (r/adapt-react-class -nav-item))
 
+(defn tags-dialog [on-close]
+  (let [s (state/cursor [:tags-page] {:data {} :filter-value ""})]
+    (http/GET "/api/tags"
+      {:handler #(swap! s (fn [m] (assoc m :data (get % "data"))))
+       :error-handler #(do (swap! s (fn [m] (assoc m :data {})))
+                           (js/console.error "failed to fetch tags->notes map: " %))})
+    (fn []
+      (let [{:keys [data filter-value]} @s]
+        [search-dialog
+         [input-field {:value filter-value
+                       :ref (fn [el] (when el (. el focus)))
+                       :on-change
+                       #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
+         [:div {:class "mb-4"}
+          [:ul {:style {:padding "0" :list-style-type "none"}
+                :class "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}
+           (let [filter-tags (filter (complement empty?) (string/split filter-value #"\s+"))]
+             (for [[tag count] data]
+               (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
+                 [:li {:key tag
+                       :style {:padding-bottom ".9em"}} [:div
+                                                         {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
+                                                         [:a {:style {:color "white"
+                                                                      :font-size ".9em"
+                                                                      :text-decoration "none"}
+                                                              :href (str "/tags/" tag)} (str tag " - " count)]]])))]]]))))
+
 ; ---------------- page mounting component
+
+
 (defn current-page []
   (fn []
     (let [page (:current-page (session/get :route))]
@@ -126,8 +156,10 @@
           [nav-item [:a {:class ["mx-2" "my-2" "inline-block" "text-x-green" "text-center" "text-sm" "font-bold" "px-2" "py-1"] :href "/"} "Search"]]
           [nav-item [:a {:href "/search/help"} "Search Help"]]
           [nav-item [:a {:href "/tags"} "Tags"]]
+          [nav-item [:a {:href "#" :class "mx-2 my-2 inline-block bg-x-blue text-sm text-white font-bold px-2 py-1"
+                         :on-click (fn [e] (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))}))} "Tags"]]
           [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
-                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))} "Modal"]]]]]
+                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))} "Notes"]]]]]
        [:div]
        [modal/component]
        [page]])))
