@@ -5,12 +5,14 @@
             [emotion.core :refer [defstyled]]
             [reagent.session :as session]
             [goog.dom :as gdom]
+            [goog.events.KeyCodes :as key]
             [reitit.frontend :as reitit]
             [accountant.core :as accountant]
             [ajax.core :as http]
             [app.state :as state]
             [app.search :as search]
             [app.components.base :refer [input-field search-dialog]]
+            [app.components.keys :refer [with-keys]]
             [app.components.modal :as modal]
             [app.components.note :as note]))
 
@@ -115,30 +117,33 @@
 
 (defn tags-dialog [on-close]
   (let [s (state/cursor [:tags-page] {:data {} :filter-value ""})]
+
     (http/GET "/api/tags"
       {:handler #(swap! s (fn [m] (assoc m :data (get % "data"))))
        :error-handler #(do (swap! s (fn [m] (assoc m :data {})))
                            (js/console.error "failed to fetch tags->notes map: " %))})
-    (fn []
-      (let [{:keys [data filter-value]} @s]
-        [search-dialog
-         [input-field {:value filter-value
-                       :ref (fn [el] (when el (. el focus)))
-                       :on-change
-                       #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
-         [:div {:class "mb-4"}
-          [:ul {:style {:padding "0" :list-style-type "none"}
-                :class "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}
-           (let [filter-tags (filter (complement empty?) (string/split filter-value #"\s+"))]
-             (for [[tag count] data]
-               (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
-                 [:li {:key tag
-                       :style {:padding-bottom ".9em"}} [:div
-                                                         {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
-                                                         [:a {:style {:color "white"
-                                                                      :font-size ".9em"
-                                                                      :text-decoration "none"}
-                                                              :href (str "/tags/" tag)} (str tag " - " count)]]])))]]]))))
+    (with-keys
+      {key/ESC #(on-close)}
+      (fn []
+        (let [{:keys [data filter-value]} @s]
+          [search-dialog
+           [input-field {:value filter-value
+                         :ref (fn [el] (when el (. el focus)))
+                         :on-change
+                         #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
+           [:div {:class "mb-4"}
+            [:ul {:style {:padding "0" :list-style-type "none"}
+                  :class "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}
+             (let [filter-tags (filter (complement empty?) (string/split filter-value #"\s+"))]
+               (for [[tag count] data]
+                 (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
+                   [:li {:key tag
+                         :style {:padding-bottom ".9em"}} [:div
+                                                           {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
+                                                           [:a {:style {:color "white"
+                                                                        :font-size ".9em"
+                                                                        :text-decoration "none"}
+                                                                :href (str "/tags/" tag)} (str tag " - " count)]]])))]]])))))
 
 ; ---------------- page mounting component
 
