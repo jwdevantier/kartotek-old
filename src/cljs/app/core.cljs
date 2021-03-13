@@ -136,46 +136,43 @@
                          :style {:padding-bottom ".9em"}}
                     [Tag {:href (str "/tags/" tag)} (str tag " - " count)]])))]]])))))
 
-#_[:div
-   {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
-   [:a {:style {:color "white"
-                :font-size ".9em"
-                :text-decoration "none"}
-        :href (str "/tags/" tag)} (str tag " - " count)]]
 ; ---------------- page mounting component
 
+(defn Shortcut [key label]
+  [:span {:class "pl-2"}
+   [:span {:class "text-x-green"} key]
+   [:span "- " label]])
 
+; TODO: shortcuts are actually bound to js/document, cannot work around this limitation.
 (defn current-page []
   (with-shortcuts
     {"ctrl+x s"
      (fn [e]
-       (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))
+       (when (nil? (modal/current-component))
+         (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))})))
+
      "ctrl+x t"
      (fn [e]
-       (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))}))}
+       (when (nil? (modal/current-component))
+         (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))})))
+     "ctrl+x h"
+     (fn [e]
+       (when (nil? (modal/current-component))
+         (accountant/navigate! "/search/help")))}
+
     (fn []
       (let [page (:current-page (session/get :route))]
         [:div
-         [:header
-          {:style {:position "fixed" :top 0 :left 0 :right 0}
-           :class ["bg-x-grey" "border-b-2" "border-x-grey-light"]}
-          [:div
-           [:ul {:style {:display "inline-block"
-                         :list-style-type "none"}}
-            [nav-item [:a {:class ["mx-2" "my-2" "inline-block" "text-x-green" "text-center" "text-sm" "font-bold" "px-2" "py-1"] :href "/"} "Search"]]
-            [nav-item [:a {:href "/search/help"} "Search Help"]]
-            [nav-item [:a {:href "/tags"} "Tags"]]
-            [nav-item [:a {:href "#" :class "mx-2 my-2 inline-block bg-x-blue text-sm text-white font-bold px-2 py-1"
-                           :on-click (fn [e] (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))}))} "Tags"]]
-            [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
-                           :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))} "Notes"]]]]]
-         [:div]
          [modal/component]
-         [page]
+         [:div {:class "pt-4"} [page]]
+
          [:footer
           {:style {:position "fixed" :bottom 0 :left 0 :right 0}
-           :class ["bg-x-pink" "text-white" "font-bold" "px-1" "py-1"]}
-          [:p "big things shall happen here"]]]))))
+           :class ["bg-x-grey-dark" "text-white" "font-bold" "px-1" "py-1"]}
+          [:p [:span "ctrl-x"]
+           [Shortcut "s" "search"]
+           [Shortcut "t" "tags"]
+           [Shortcut "h" "help"]]]]))))
 
 ; ----------------
 

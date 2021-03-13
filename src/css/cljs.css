@@ -4,7 +4,6 @@
 
 body {
     background-color: #282c34;
-    padding-top: 5.5em; /* because of the navbar, move elsewhere though */
 }
 
 article.note {
