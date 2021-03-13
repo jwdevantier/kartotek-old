@@ -25,7 +25,7 @@
     (fn with-keys-did-mount [this]
       (let [e (rdom/dom-node this)]
         ; TODO: missed binding listener to actual elem.
-        (set! (. this -listener) (-key-listener! keys))))
+        (set! (. this -listener) (-key-listener! keys e))))
     :component-will-unmount
     (fn with-keys-will-unmount [this]
       (. this listener))}))
