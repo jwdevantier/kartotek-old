@@ -31,7 +31,7 @@
       [:div
        {:style {:padding ".5em"
                 :border-bottom "1px dotted #7a7a7a"}
-        :class (if active? ["bg-x-grey-dark" "border-x-blue" "border-l-4"] ["border-l-4" "border-transparent" ])
+        :class (if active? ["bg-x-grey-dark" "border-x-blue" "border-l-4"] ["border-l-4" "border-transparent"])
         :key id
         ; react reference - fn run @ component lifecycle start.
         :ref (fn [el] (when (and el active?)
@@ -102,7 +102,7 @@
                    :class "w-full px-4 py-2 border-x-grey focus:border-x-grey-light border-solid border-2 bg-x-grey-dark w-full text-x-white focus:outline-none"
                    :auto-complete "off"
                    :value (get @cursor :query "")
-                   :ref (fn [el] (when el (. el focus)) )
+                   :ref (fn [el] (when el (. el focus)))
                    :on-change
                    (fn [event]
                      (let [query-value (.. event -target -value)]
