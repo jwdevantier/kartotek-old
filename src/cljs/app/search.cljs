@@ -69,30 +69,36 @@
      (gevents/listen key-handler (. et -KEY) on-key-press)
      #(gevents/unlisten key-handler (. et -KEY) on-key-press))))
 
-; TODO: extract key-mgmt logic into custom container class - move along key-listener! to other file
+(defn with-keys [keys component]
+  (r/create-class
+   {:display-name "with-keys"
+    :reagent-render
+    component
+    :component-did-mount
+    (fn search-dialog-did-mount [this]
+      (let [e (rdom/dom-node this)]
+        (set! (. this -listener) (key-listener! keys))))
+    :component-will-unmount
+    (fn search-dialog-will-unmount [this]
+      (. this listener))}))
+
 (defn dialog [on-close]
-  (let [cursor (state/cursor [:note-search] {:query "" :results [] :selected-ndx 0})
-        on-key-up
-        #(do (js/console.log "UP")
-             (. % preventDefault)
-             (swap! cursor (fn [s] (assoc s :selected-ndx
-                                          (max 0 (dec (get s :selected-ndx 0)))))))
-        on-key-down
-        #(do (js/console.log "DOWN")
-             (. % preventDefault)
-             (swap! cursor (fn [s] (assoc s :selected-ndx (let [{:keys [results selected-ndx]} s]
-                                                            (max 0 (min (-> results count dec) (inc selected-ndx))))))))
-        on-esc
-        #(on-close)
-        on-enter
-        #(do (js/console.log "ENTER")
-             (let [{:keys [results selected-ndx]} @cursor
-                   selected-result (get results selected-ndx nil)]
-               (accountant/navigate! (str "/notes/" (get selected-result "id")))
-               (modal/close!)))]
-    (r/create-class
-     {:display-name "search-dialog"
-      :reagent-render
+  (let [cursor (state/cursor [:note-search] {:query "" :results [] :selected-ndx 0})]
+    (with-keys
+      {key/UP
+       #(do (. % preventDefault)
+            (swap! cursor (fn [s] (assoc s :selected-ndx
+                                         (max 0 (dec (get s :selected-ndx 0)))))))
+       key/DOWN
+       #(do (. % preventDefault)
+            (swap! cursor (fn [s] (assoc s :selected-ndx (let [{:keys [results selected-ndx]} s]
+                                                           (max 0 (min (-> results count dec) (inc selected-ndx))))))))
+       key/ESC #(on-close)
+       key/ENTER
+       #(do (let [{:keys [results selected-ndx]} @cursor
+                  selected-result (get results selected-ndx nil)]
+              (accountant/navigate! (str "/notes/" (get selected-result "id")))
+              (modal/close!)))}
       (fn [on-close]
         [:div {:class "flex flex-col w-full"}
      ; search field
@@ -116,17 +122,7 @@
      ; search results
          [:div {:class "flex flex-col flex-grow min-h-0 mt-4 overflow-y-scroll scrollbar-thin scrollbar-thumb-x-blue scrollbar-track-x-grey-dark"}
           (let [{:keys [results selected-ndx] :or {results [] selected-ndx 0}} @cursor]
-            (map-indexed (fn [ndx item] (search-result (assoc item "active?" (= ndx selected-ndx)))) results))]])
-      :component-did-mount
-      (fn search-dialog-did-mount [this]
-        (let [e (rdom/dom-node this)]
-          (set! (. this -listener) (key-listener! {key/UP on-key-up
-                                                   key/DOWN on-key-down
-                                                   key/ESC on-esc
-                                                   key/ENTER on-enter}))))
-      :component-will-unmount
-      (fn search-dialog-will-unmount [this]
-        (. this listener))})))
+            (map-indexed (fn [ndx item] (search-result (assoc item "active?" (= ndx selected-ndx)))) results))]]))))
 
 (defn help
   "help page"
