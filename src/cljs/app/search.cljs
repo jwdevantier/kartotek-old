@@ -3,13 +3,12 @@
             [reagent.core :as r]
             [reagent.dom :as rdom]
             [ajax.core :as http]
-            [goog.events :as gevents]
             [goog.events.KeyCodes :as key]
             [accountant.core :as accountant]
             [app.state :as state]
             [app.components.modal :as modal]
-            [app.components.note :as note])
-  (:import [goog.events EventType KeyHandler]))
+            [app.components.note :as note]
+            [app.components.keys :refer [with-keys]]))
 
 (defstyled -search-li :li
   {:padding "0 .9em .3em .9em"
@@ -57,30 +56,6 @@
           [:ul meta-ul-attrs (for [tag tags]
                                [:li {:style {:display "inline"} :key tag} [:a {:style {:margin "0em .2em"} :href (str "/tags/" tag)} tag]])]
           [:p {:class ["inline-block" "text-x-white"]} "-"])]])))
-
-(defn key-listener!
-  "
-  NOTE: returns function to remove event listener"
-  ([kmap] (key-listener! kmap js/document))
-  ([kmap elem]
-   (let [key-handler (KeyHandler. elem)
-         on-key-press #(when-let [f (get kmap (.. % -keyCode))] (f %))
-         ^EventType et (. KeyHandler -EventType)]
-     (gevents/listen key-handler (. et -KEY) on-key-press)
-     #(gevents/unlisten key-handler (. et -KEY) on-key-press))))
-
-(defn with-keys [keys component]
-  (r/create-class
-   {:display-name "with-keys"
-    :reagent-render
-    component
-    :component-did-mount
-    (fn search-dialog-did-mount [this]
-      (let [e (rdom/dom-node this)]
-        (set! (. this -listener) (key-listener! keys))))
-    :component-will-unmount
-    (fn search-dialog-will-unmount [this]
-      (. this listener))}))
 
 (defn dialog [on-close]
   (let [cursor (state/cursor [:note-search] {:query "" :results [] :selected-ndx 0})]
