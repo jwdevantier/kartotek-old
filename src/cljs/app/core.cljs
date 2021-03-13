@@ -66,8 +66,7 @@
                 (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
                   [:li {:key tag
                         :style {:padding-bottom ".9em"}} [:div
-                                   {
-                                    :class "inline-flex bg-purple-600 text-white rounded-full h-6 px-3 justify-center items-center"}
+                                   {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
                                    [:a {:style {:color "white"
                                                 :font-size ".9em"
                                                 :text-decoration "none"}
