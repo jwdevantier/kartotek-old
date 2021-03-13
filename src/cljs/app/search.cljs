@@ -73,6 +73,7 @@
        key/ENTER
        #(do (let [{:keys [results selected-ndx]} @cursor
                   selected-result (get results selected-ndx nil)]
+              (. % preventDefault)
               (accountant/navigate! (str "/notes/" (get selected-result "id")))
               (modal/close!)))}
       (fn [on-close]
