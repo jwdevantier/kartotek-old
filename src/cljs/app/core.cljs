@@ -11,7 +11,7 @@
             [ajax.core :as http]
             [app.state :as state]
             [app.search :as search]
-            [app.components.base :refer [input-field search-dialog]]
+            [app.components.base :refer [InputField SearchDialog Tag]]
             [app.components.keys :refer [with-keys]]
             [app.components.modal :as modal]
             [app.components.note :as note]))
@@ -68,12 +68,7 @@
               (for [[tag count] data]
                 (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
                   [:li {:key tag
-                        :style {:padding-bottom ".9em"}} [:div
-                                                          {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
-                                                          [:a {:style {:color "white"
-                                                                       :font-size ".9em"
-                                                                       :text-decoration "none"}
-                                                               :href (str "/tags/" tag)} (str tag " - " count)]]])))]]
+                        :style {:padding-bottom ".9em"}} [Tag {:href (str "/tags/" tag)} (str tag " - " count)]])))]]
 
           [:div "fetching results..."])))))
 
@@ -126,8 +121,8 @@
       {key/ESC #(on-close)}
       (fn []
         (let [{:keys [data filter-value]} @s]
-          [search-dialog
-           [input-field {:value filter-value
+          [SearchDialog
+           [InputField {:value filter-value
                          :ref (fn [el] (when el (. el focus)))
                          :on-change
                          #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
@@ -138,13 +133,16 @@
                (for [[tag count] data]
                  (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
                    [:li {:key tag
-                         :style {:padding-bottom ".9em"}} [:div
+                         :style {:padding-bottom ".9em"}}
+                    [Tag {:href (str "/tags/" tag)} (str tag " - " count)]
+                    ])))]]])))))
+
+#_[:div
                                                            {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
                                                            [:a {:style {:color "white"
                                                                         :font-size ".9em"
                                                                         :text-decoration "none"}
-                                                                :href (str "/tags/" tag)} (str tag " - " count)]]])))]]])))))
-
+                                                                :href (str "/tags/" tag)} (str tag " - " count)]]
 ; ---------------- page mounting component
 
 

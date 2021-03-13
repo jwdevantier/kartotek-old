@@ -6,7 +6,7 @@
             [goog.events.KeyCodes :as key]
             [accountant.core :as accountant]
             [app.state :as state]
-            [app.components.base :refer [input-field search-dialog]]
+            [app.components.base :refer [InputField SearchDialog]]
             [app.components.modal :as modal]
             [app.components.note :as note]
             [app.components.keys :refer [with-keys]]))
@@ -76,8 +76,8 @@
               (accountant/navigate! (str "/notes/" (get selected-result "id")))
               (modal/close!)))}
       (fn [on-close]
-        [search-dialog
-         [input-field
+        [SearchDialog
+         [InputField
           {:value (get @cursor :query "")
            :ref (fn [el] (when el (. el focus)))
            :on-change
