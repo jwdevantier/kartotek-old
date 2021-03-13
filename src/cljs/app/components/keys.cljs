@@ -2,7 +2,8 @@
   (:require [goog.events :as gevents]
             [reagent.core :as r]
             [reagent.dom :as rdom])
-  (:import [goog.events EventType KeyHandler]))
+  (:import [goog.events EventType KeyHandler]
+           [goog.ui KeyboardShortcutHandler]))
 
 (defn -key-listener!
   "
@@ -21,9 +22,36 @@
     :reagent-render
     component
     :component-did-mount
-    (fn search-dialog-did-mount [this]
+    (fn with-keys-did-mount [this]
       (let [e (rdom/dom-node this)]
+        ; TODO: missed binding listener to actual elem.
         (set! (. this -listener) (-key-listener! keys))))
     :component-will-unmount
-    (fn search-dialog-will-unmount [this]
+    (fn with-keys-will-unmount [this]
       (. this listener))}))
+
+(defn -kb-shortcuts!
+  ([shortcuts] (-kb-shortcuts! shortcuts js/document))
+  ([shortcuts elem]
+   (let [s (KeyboardShortcutHandler. elem)
+         handler
+         (fn [e]
+           (let [identifier (. e -identifier)]
+             ((get shortcuts identifier) identifier)))]
+     (doseq [[keys handler] shortcuts]
+       (.registerShortcut s keys keys))
+     (gevents/listen s KeyboardShortcutHandler.EventType.SHORTCUT_TRIGGERED handler)
+     #(gevents/unlisten s KeyboardShortcutHandler.EventType.SHORTCUT_TRIGGERED handler))))
+
+(defn with-shortcuts [shortcuts-map component]
+  (let [!listen-handle (atom nil)]
+    (r/create-class
+     {:display-name "with-kb-shortcuts"
+      :reagent-render component
+      :component-did-mount
+      (fn with-shortcuts-did-mount [this]
+      ; TODO: bound globally
+        (reset! !listen-handle (-kb-shortcuts! shortcuts-map)))
+      :component-will-unmount
+      (fn with-shortcuts-will-unmount [this]
+        (when-let [hndl @!listen-handle] (hndl)))})))

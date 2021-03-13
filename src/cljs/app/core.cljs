@@ -12,7 +12,7 @@
             [app.state :as state]
             [app.search :as search]
             [app.components.base :refer [InputField SearchDialog Tag]]
-            [app.components.keys :refer [with-keys]]
+            [app.components.keys :refer [with-keys with-shortcuts]]
             [app.components.modal :as modal]
             [app.components.note :as note]))
 
@@ -123,9 +123,9 @@
         (let [{:keys [data filter-value]} @s]
           [SearchDialog
            [InputField {:value filter-value
-                         :ref (fn [el] (when el (. el focus)))
-                         :on-change
-                         #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
+                        :ref (fn [el] (when el (. el focus)))
+                        :on-change
+                        #(swap! s (fn [m] (assoc m :filter-value (.. % -target -value))))}]
            [:div {:class "mb-4"}
             [:ul {:style {:padding "0" :list-style-type "none"}
                   :class "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}
@@ -134,42 +134,54 @@
                  (when (or (empty? filter-tags) (some #(string/includes? tag %) filter-tags))
                    [:li {:key tag
                          :style {:padding-bottom ".9em"}}
-                    [Tag {:href (str "/tags/" tag)} (str tag " - " count)]
-                    ])))]]])))))
+                    [Tag {:href (str "/tags/" tag)} (str tag " - " count)]])))]]])))))
 
 #_[:div
-                                                           {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
-                                                           [:a {:style {:color "white"
-                                                                        :font-size ".9em"
-                                                                        :text-decoration "none"}
-                                                                :href (str "/tags/" tag)} (str tag " - " count)]]
+   {:class "inline-flex rounded-full text-xs font-bold leading-sm uppercase px-3 py-1 bg-x-grey-light text-x-white"}
+   [:a {:style {:color "white"
+                :font-size ".9em"
+                :text-decoration "none"}
+        :href (str "/tags/" tag)} (str tag " - " count)]]
 ; ---------------- page mounting component
 
 
 (defn current-page []
-  (fn []
-    (let [page (:current-page (session/get :route))]
-      [:div
-       [:header
-        {:style {:position "fixed" :top 0 :left 0 :right 0}
-         :class ["bg-x-grey" "border-b-2" "border-x-grey-light"]}
+  (with-shortcuts
+    {"ctrl+x s"
+     (fn [e]
+       (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))
+     "ctrl+x t"
+     (fn [e]
+       (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))}))}
+    (fn []
+      (let [page (:current-page (session/get :route))]
         [:div
-         [:ul {:style {:display "inline-block"
-                       :list-style-type "none"}}
-          [nav-item [:a {:class ["mx-2" "my-2" "inline-block" "text-x-green" "text-center" "text-sm" "font-bold" "px-2" "py-1"] :href "/"} "Search"]]
-          [nav-item [:a {:href "/search/help"} "Search Help"]]
-          [nav-item [:a {:href "/tags"} "Tags"]]
-          [nav-item [:a {:href "#" :class "mx-2 my-2 inline-block bg-x-blue text-sm text-white font-bold px-2 py-1"
-                         :on-click (fn [e] (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))}))} "Tags"]]
-          [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
-                         :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))} "Notes"]]]]]
-       [:div]
-       [modal/component]
-       [page]])))
+         [:header
+          {:style {:position "fixed" :top 0 :left 0 :right 0}
+           :class ["bg-x-grey" "border-b-2" "border-x-grey-light"]}
+          [:div
+           [:ul {:style {:display "inline-block"
+                         :list-style-type "none"}}
+            [nav-item [:a {:class ["mx-2" "my-2" "inline-block" "text-x-green" "text-center" "text-sm" "font-bold" "px-2" "py-1"] :href "/"} "Search"]]
+            [nav-item [:a {:href "/search/help"} "Search Help"]]
+            [nav-item [:a {:href "/tags"} "Tags"]]
+            [nav-item [:a {:href "#" :class "mx-2 my-2 inline-block bg-x-blue text-sm text-white font-bold px-2 py-1"
+                           :on-click (fn [e] (modal/show! {:title "search tags" :body (tags-dialog #(modal/close!))}))} "Tags"]]
+            [nav-item [:a {:href "#" :class ["mx-2" "my-2" "inline-block" "bg-x-orange" "text-sm" "text-white" "font-bold" "px-2" "py-1"]
+                           :on-click (fn [e] (modal/show! {:title "search notes" :body (search/dialog #(modal/close!))}))} "Notes"]]]]]
+         [:div]
+         [modal/component]
+         [page]
+         [:footer
+          {:style {:position "fixed" :bottom 0 :left 0 :right 0}
+           :class ["bg-x-pink" "text-white" "font-bold" "px-1" "py-1"]}
+          [:p "big things shall happen here"]]]))))
 
 ; ----------------
 
 ; ---------------- lifecycle
+
+
 (defn -start []
   ; called after reload
   (rdom/render [current-page] (gdom/getElement "app")))
