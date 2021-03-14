@@ -139,9 +139,9 @@
 ; ---------------- page mounting component
 
 (defn Shortcut [key label]
-  [:span {:class "pl-2"}
+  [:span {:class ""}
    [:span {:class "text-x-green"} key]
-   [:span "- " label]])
+   [:span " - " label]])
 
 ; TODO: shortcuts are actually bound to js/document, cannot work around this limitation.
 (defn current-page []
@@ -169,9 +169,12 @@
          [:footer
           {:style {:position "fixed" :bottom 0 :left 0 :right 0}
            :class ["bg-x-grey-dark" "text-white" "font-bold" "px-1" "py-1"]}
-          [:p [:span "ctrl-x"]
+          [:p
+           [:span {:class "pr-2 text-x-green"} "ctrl-x"]
            [Shortcut "s" "search"]
+           [:span {:class "px-2 text-x-grey-light"} "|"]
            [Shortcut "t" "tags"]
+           [:span {:class "px-2 text-x-grey-light"} "|"]
            [Shortcut "h" "help"]]]]))))
 
 ; ----------------
