@@ -36,21 +36,18 @@
                                           (update r tag (fn [docs] (conj (or docs #{}) id)))) {} tags))))]
     (apply merge-with clojure.set/union doc-entries)))
 
-(defn -build-db-doc-entry [fpath]
+(defn -build-db-doc-entry [note-dir fname]
   (try
-    (let [doc (notes/parse-md-doc (slurp fpath))
-          links (notes/extract-links (get-notes-path) (:content doc))]
-        ; ensure all fields exist, even if no value was provided in doc meta data
-      (merge {:title "" :description "" :tags #{} :links #{}}
-             (assoc (:meta doc) :links links)))
+    (->> fname (notes/parse-md-doc note-dir) :meta)
     (catch Exception e
-      (timbre/warn (str "failed to load document '" fpath "': " (.getMessage e)))
+      (timbre/warn (str "failed to load document '" fname "' in dir '" (get-notes-path) "': " (.getMessage e)))
       nil)))
 
 (defn -build-db [dir]
+  (timbre/info (str "-build-db dir: '" dir "'"))
   (reduce (fn [db fpath]
-            (assoc db (-> fpath io/file (.getName))
-                   (-build-db-doc-entry fpath)))
+            (let [fname (-> fpath io/file (.getName))]
+              (assoc db fname (-build-db-doc-entry dir fname))))
           {} (notes/notes-paths dir)))
 
 (defn -watch-notes-dirs
@@ -68,7 +65,7 @@
                 (swap! db (fn [v] (if (= kind :delete)
                                     (dissoc v (.getName file))
                                     (assoc v (.getName file)
-                                           (-build-db-doc-entry file))))))}]))
+                                           (-build-db-doc-entry (.getParent file) (.getName file)))))))}]))
 
 ;; Parser definition
 ;; -----------------
@@ -111,14 +108,14 @@
                            (case (count term)
                              ; [[:STR "something"]]
                              1 (let [[_ search-string] b]
-                                 #(string/includes? (get % :title "") search-string))
+                                 #(string/includes? (get % :search/title "") search-string))
                              ; [[:R] [:STR "something"]]
                              ; [[:T] [:STR "something"]]
                              2 (let [[modifier] b
                                      [_ search-string] c]
                                  (case modifier
-                                   :T #(contains? (:tags %) search-string)
-                                   :R #(contains? (:links %) search-string)))))
+                                   :T #(contains? (:search/tags %) search-string)
+                                   :R #(contains? (:search/links %) search-string)))))
         parse-term (fn [[_ & t]]
                      (if (= [:NOT] (first t))
                        (complement (parse-term-inner (rest t)))
@@ -131,13 +128,13 @@
   "return results for search"
   [query]
   (when-not (empty? query)
-    (-> query parse-query -query-ast->filter filter-db)))
+    (-> query string/lower-case parse-query -query-ast->filter filter-db)))
 
 (defn start
   "start file database"
   [{:keys [note-dir]}]
   (let [db (atom (-build-db note-dir))]
-    (println (str "starting file database (notes dir: " note-dir ")"))
+    (timbre/info (str "starting file database (notes dir: " note-dir ")"))
     ; scan all dirs, populate
     {:db db
      :watcher (-watch-notes-dirs db [note-dir])}))

@@ -125,11 +125,8 @@
   "default"
   [rq]
   (let [id (-> rq :path-params :id)
-        note (-> (state/get-config)
-                 (get-in [:db :note-dir])
-                 (java.io.File. id)
-                 slurp
-                 notes/parse-md-doc)]
+        note-dir (state/get-notes-path)
+        note (notes/parse-md-doc note-dir id)]
     (page (layout-note note))))
 
 (defn search-help

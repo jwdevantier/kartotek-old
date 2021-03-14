@@ -45,14 +45,8 @@
   "return rendered note HTML"
   [rq]
   (let [id (-> rq :path-params :note-id)
-        note (-> (state/get-config)
-                 (get-in [:db :note-dir])
-                 (java.io.File. id)
-                 slurp
-                 notes/parse-md-doc)]
+        note-dir (state/get-notes-path)
+        note (notes/parse-md-doc note-dir id)]
     {:status 200
      :headers {"Content-Type" "text/html"}
-     :body (->> (-> id db/lookup :links)
-                (assoc-in note [:meta :links])
-                -note->hiccup
-                hc/html)}))
+     :body (-> note -note->hiccup hc/html)}))

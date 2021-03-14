@@ -1,5 +1,6 @@
 (ns app.system
   (:require [org.rssys.context.core :as context]
+            [taoensso.timbre :as timbre]
             [app.server :as server]
             [app.filedb :as filedb]
             [app.state :refer [system]]
@@ -34,8 +35,8 @@
        (read-config))
      :stop-fn
      (fn [state-obj]
-       (println "stopping cfg")
-       (println state-obj))}
+       (timbre/info "cfg @ time of stopping:")
+       (timbre/info state-obj))}
     {:id :filedb
      :start-deps #{:cfg}
      :config
