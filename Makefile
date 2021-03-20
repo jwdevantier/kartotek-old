@@ -25,9 +25,17 @@ repl-cljs:  ## start shadowcljs (note: need clojure server to see)
 	-echo "NOTE: you will need to start the Clojure server to visit the pages."
 	npx shadow-cljs watch :app
 
+.PHONY: build-cljs
+build-cljs:
+	npx shadow-cljs release :app
+
 .PHONY: dev-css
 dev-css:  ## watch css for changes and compile
 	npx postcss  src/css/cljs.css --dir resources/assets --watch
+
+.PHONY: build-css
+release-css:
+	npx postcss src/css/cljs.css --dir resources/assets
 
 .PHONY: uberjar
 uberjar:  ## produce self-contained executable jar in targets/ folder
@@ -36,6 +44,11 @@ uberjar:  ## produce self-contained executable jar in targets/ folder
 	-echo "Creating uberjar..."
 	clojure -M:uberjar
 
+.PHONY: release
+release:  ## build complete uberjar release
+	$(MAKE) build-css
+	$(MAKE) build-cljs
+	$(MAKE) uberjar
 
 .PHONY: test
 test:  ## run tests
