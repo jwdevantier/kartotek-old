@@ -22,7 +22,8 @@
             [app.filedb :as db]
             [app.state :as state]
             [app.env :as env]
-            [app.api.routes :as api]))
+            [app.api.routes :as api]
+            [taoensso.timbre :as timbre]))
 
 (defn note-search-form
   ""
@@ -237,11 +238,11 @@
 (defn start
   "start server component"
   [{:keys [port]}]
-  (println "starting server...")
+  (timbre/info (str "starting server at port " port "..."))
   (jetty/run-jetty #'preview-server {:port port :join? false}))
 
 (defn stop
   "stop server component"
   [state-obj]
-  (println "stopping server...")
+  (timbre/info "stopping server...")
   (.stop state-obj))

@@ -40,7 +40,7 @@
   (try
     (->> fname (notes/parse-md-doc note-dir) :meta)
     (catch Exception e
-      (timbre/warn (str "failed to load document '" fname "' in dir '" (get-notes-path) "': " (.getMessage e)))
+      (timbre/warnf e "failed to load document '%s' in dir '%s'" fname (get-notes-path))
       nil)))
 
 (defn -build-db [dir]
@@ -142,6 +142,6 @@
 (defn stop
   "stop file database"
   [{:keys [db watcher]}]
-  (println "stopping file database...")
+  (timbre/info "stopping file database...")
   (h/stop! watcher)
   (reset! db nil))

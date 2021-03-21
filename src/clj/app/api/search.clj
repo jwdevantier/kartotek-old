@@ -3,16 +3,18 @@
             [app.filedb :as db]
             [hiccup.core :as hc]
             [clojure.java.io :as io]
-            [app.notes :as notes]))
+            [app.notes :as notes]
+            [taoensso.timbre :as timbre]))
 
 (defn query
   "return results of search request."
   [rq]
   (let [search-query (get-in rq [:body "search-query"])]
-    (println "QUERY: " search-query)
     (try
       (jsend/success (db/search search-query))
-      (catch Exception e (println "failed") (println (.getMessage e)) (jsend/fail {})))))
+      (catch Exception e
+        (timbre/warnf e "error parsing search query '%s'" search-query)
+        (jsend/fail {})))))
 
 (defn help
   "return HTML-formatted search help"

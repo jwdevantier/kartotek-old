@@ -9,18 +9,19 @@
 (defn read-config
   "blend config with defaults"
   []
-  (deep-merge
+  (let [cfg (deep-merge
    ; defaults
-   {:web {:port 8081}
-    :db {:note-dir "notes"}}
-   (try (read-string (try (slurp "config.edn")
-                          (catch Exception e
-                            (do (println "config.edn not found, using default config...")
-                                "{}"))))
-        (catch Exception e
-          (do (println "Syntax error in config file:")
-              (println (str e))
-              {})))))
+             {:web {:port 8081}
+              :db {:note-dir "notes"}}
+             (try (read-string (try (slurp "config.edn")
+                                    (catch Exception e
+                                      (do (timbre/warn "config.edn not found, using default config...")
+                                          "{}"))))
+                  (catch Exception e
+                    (do (timbre/error e "syntax error in config file")
+                        {}))))]
+    (timbre/info "using config:" cfg)
+    cfg))
 
 (defn -build-system
   "build system"
@@ -56,5 +57,4 @@
      :start-fn
      server/start
      :stop-fn
-     server/stop
-     }]))
+     server/stop}]))
