@@ -98,7 +98,7 @@
 
 (defn page-for [route]
   (case route
-    :index #'search/dialog
+    :index #'search/help
     :tags-index #'tags-index
     :tag-results #'tag-results
     :note-show #'note-show
